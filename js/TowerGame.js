@@ -227,25 +227,12 @@ var Stage1 = function(){
 		document.onclick= function(e){;} ;
 		toGameOver();
 	} else {
+		if ('addEventListener' in document) {
+			document.addEventListener('DOMContentLoaded', function() {
+				FastClick.attach(document.body);
+			}, false);
+		}
 		document.onclick= function(e){
-			if ( hook.load === true ){ 
-				hook.load = false ;
-				var box = Physics.body('rectangle',{
-					x: hook.x + hook.size / 2 - 50  , 
-					y: hook.y + 50 + hook.size / 2 , 
-					width: 100 ,
-					height: 100 ,
-					restitution: 0 ,
-					cof: 3 , 
-					label: "box"
-				});
-				box.view = getImage("box1");
-				world.add(box);
-				boxList.push(box) ;
-				reloadTimer = setTimeout(reloadHook,2000); 
-			}
-		};
-		document.touchend= function(e){
 			if ( hook.load === true ){ 
 				hook.load = false ;
 				var box = Physics.body('rectangle',{
@@ -273,5 +260,9 @@ var changePage = function(){
 		Stage1();
 	}
 }
+
+window.addEventListener('load', function() {
+    FastClick.attach(document.body);
+}, false);
 
 init();
