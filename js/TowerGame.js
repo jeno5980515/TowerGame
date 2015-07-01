@@ -157,7 +157,7 @@ var moveUp = function(){
 			boxList[i].state.pos.y += 2  ;
 		}
 		for ( var i = 0 ; i < boxList.length ; i ++ ){
-			if ( viewHeight - boxList[i].state.pos.y > boxList[i].geometry.height  )
+			if (  viewHeight - boxList[i].state.pos.y > boxList[i].geometry.height  )
 				boxList[i].treatment = 'dynamic' ;
 		}
 		offsetY += 2 ;
@@ -220,7 +220,10 @@ var Stage1 = function(){
 		var coll;
 		for (var i = 0, l = data.collisions.length; i < l; i++){
 			coll = data.collisions[ i ];
-			coll.bodyA.state.vel.y = 0 ;
+			if (  coll.bodyA.uid > coll.bodyB.uid )
+				coll.bodyA.state.vel.y = 0 ;
+			else 
+				coll.bodyB.state.vel.y = 0 ;
 		}
 	});
 	if ( isGameOver === true ){
