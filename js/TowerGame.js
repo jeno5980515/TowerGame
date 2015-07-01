@@ -6,14 +6,11 @@ var width , heigth ;
 var ctx ;
 var nowPage = 'stage1' ;
 var boxList = [] ;
-var circle ;
-var hookTimer ;
 var hasFirstBox = false ;
 var isGameOver = false ;
 var viewWidth = 1000;
 var viewHeight = 700;
 var upperBound = 600 ;
-var boxTimeCount = 0 ;
 var reloadTimer ;
 var offsetY = 0 ;
 
@@ -116,7 +113,6 @@ var init = function(){
 
 var resetAll = function(){
 	hasFirstBox = false ;
-	boxTimeCount = 0 ;
 	offsetY = 0 ;
 }
 
@@ -232,6 +228,24 @@ var Stage1 = function(){
 		toGameOver();
 	} else {
 		document.onclick= function(e){
+			if ( hook.load === true ){ 
+				hook.load = false ;
+				var box = Physics.body('rectangle',{
+					x: hook.x + hook.size / 2 - 50  , 
+					y: hook.y + 50 + hook.size / 2 , 
+					width: 100 ,
+					height: 100 ,
+					restitution: 0 ,
+					cof: 3 , 
+					label: "box"
+				});
+				box.view = getImage("box1");
+				world.add(box);
+				boxList.push(box) ;
+				reloadTimer = setTimeout(reloadHook,2000); 
+			}
+		};
+		document.touchend= function(e){
 			if ( hook.load === true ){ 
 				hook.load = false ;
 				var box = Physics.body('rectangle',{
