@@ -1,13 +1,15 @@
 var c ;
-var imageList = ["hook","hook2","box1","box2","game_bg",'0','1','2','3','4','5','6','7','8','9'] ;
+var imageList = ["hook","hook2","box1","box2","game_bg_1","game_bg_2",'game_bg2_1','game_bg2_2','0','1','2','3','4','5','6','7','8','9',
+				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2'] ;
 var simpleBoxList = ["box1","box2"] ;
-var randomType = 0 ;
 var allBoxList = [] ;
+var randomType = 0 ;
+var leftTower = [] , rightTower = [] ;
 var imageMap = {} ;
 var resulotion ;
 var width , heigth ;
 var ctx ;
-var nowPage = 'stage4' ;
+var nowPage = 'stage3' ;
 var boxList = [] ;
 var hasFirstBox = false ;
 var isGameOver = false ;
@@ -29,7 +31,15 @@ var countTimer ;
 var nowHeight = 0 ;
 var isBoxTouch = false ;
 var addHeightTimer ;
+var addLeftHeightTimer ;
+var addRightHeightTimer ;
 var remainHeight ;
+var remainLeftHeight ;
+var remainRightHeight ;
+var goalHeight = 500 ;
+var nowLeftHeight ;
+var nowRightHeight ;
+var isPush = false ;
 
 var lastBox = {
 	x : 0 ,
@@ -37,21 +47,140 @@ var lastBox = {
 }
 var hook , hookBox ;
 
-var IE = document.all?true:false;
+var IE = ("ActiveXObject" in window) ;
 var pageTimer ; 
 var world;
 
 //set all 
 
-var showNowHeight = function(){
-	var timebase = 975 + (remainTime.toString().length ) * 25 ;
-	var temp = nowHeight ;
-	while( temp >= 0 ){
-		ctx.drawImage(getImage(temp%10),timebase,280,50,50) ;
-		temp = Math.floor(temp/10) ;
-		timebase -= 50 ;
-		if ( temp === 0 )
-			break ;
+var showBlock = function(){
+	ctx.fillStyle = 'white' ;
+	ctx.fillRect(0, 0, c.width/2-940/2 , c.height);
+	ctx.fillRect(c.width-(c.width/2-940/2) , 0, c.width/2-940/2 , c.height);
+}
+
+var showTag = function(amount){
+	if ( amount === 1 ){
+		ctx.drawImage(getImage('tag'),896,706-(706-228)*nowHeight/goalHeight,37,18) ;
+		ctx.drawImage(getImage('tag2'),896,680-(706-228)*nowHeight/goalHeight+43,37,(706-228)*nowHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3'),896,723,37,19) ;
+	} else if ( amount === 2 ){
+		ctx.drawImage(getImage('tag'),898,706-(706-222)*nowRightHeight/goalHeight,35,18) ;
+		ctx.drawImage(getImage('tag2'),898,680-(706-222)*nowRightHeight/goalHeight+43,35,(706-222)*nowRightHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3'),898,723,35,19) ;
+		ctx.drawImage(getImage('tag_2'),175,706-(706-222)*nowLeftHeight/goalHeight,35,18) ;
+		ctx.drawImage(getImage('tag2'),175,680-(706-222)*nowLeftHeight/goalHeight+43,35,(706-222)*nowLeftHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3_2'),175,723,35,19) ;
+	}
+}
+
+var showNowTag = function(amount){
+	if ( amount === 1 ){
+		ctx.drawImage(getImage('nowtag'),795,708-(708-228)*nowHeight/goalHeight,95,32) ;
+		var base = 835 + (nowHeight.toString().length - 1 ) * 8 ;
+		var temp = nowHeight ;
+		ctx.drawImage(getImage('M'),base,714-(714-234)*nowHeight/goalHeight,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-234)*nowHeight/goalHeight,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+	} else if ( amount === 2 ){
+		ctx.drawImage(getImage('nowtag'),795,708-(708-222)*nowRightHeight/goalHeight,95,32) ;
+		var base = 835 + (nowRightHeight.toString().length - 1 ) * 8 ;
+		var temp = nowRightHeight ;
+		ctx.drawImage(getImage('M'),base,714-(714-228)*nowRightHeight/goalHeight,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-228)*nowRightHeight/goalHeight,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+		ctx.drawImage(getImage('nowtag2'),217,708-(708-222)*nowLeftHeight/goalHeight,95,32) ;
+		var base = 270 + (nowLeftHeight.toString().length - 1 ) * 8 ;
+		var temp = nowLeftHeight ;
+		ctx.drawImage(getImage('M'),base,714-(714-228)*nowLeftHeight/goalHeight,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-228)*nowLeftHeight/goalHeight,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+	}
+}
+
+var showGoalTag = function(amount){
+	if ( amount === 1 ){
+		ctx.drawImage(getImage('goaltag'),795,228,95,32) ;
+		var base = 835 + (goalHeight.toString().length - 1 ) * 8 ;
+		var temp = goalHeight ;
+		ctx.drawImage(getImage('M'),base,234,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,234,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+	} else if ( amount === 2 ){
+		ctx.drawImage(getImage('goaltag'),795,222,95,32) ;
+		var base = 835 + (goalHeight.toString().length - 1 ) * 8 ;
+		var temp = goalHeight ;
+		ctx.drawImage(getImage('M'),base,228,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,228,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+		ctx.drawImage(getImage('goaltag2'),217,221,95,32) ;
+		base = 270 + (goalHeight.toString().length - 1 ) * 8 ;
+		var temp = goalHeight ;
+		ctx.drawImage(getImage('M'),base,228,15,20) ;
+		base -= 16 ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10+'2'),base,228,15,20) ;
+			temp = Math.floor(temp/10) ;
+			base -= 16 ;
+			if ( temp === 0 )
+				break ;
+		}
+	}
+}
+
+var showGoalHeight = function(amount){
+	if ( amount === 1 ){
+		var base = 1005 ; 
+		ctx.fillStyle = "#C5453E" ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,210,300,50) ;
+	} else if ( amount === 2 ){
+		var base = 1020 ; 
+		ctx.fillStyle = "#C5453E" ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,183,300,50) ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,355,300,50) ;
+	}
+}
+
+var showNowHeight = function(amount){
+	if ( amount === 1 ){
+		var base = 1005 ; 
+		ctx.fillStyle = "#28231E" ;
+		ctx.fillText(nowHeight+' m',base-nowHeight.toString().length*10,305,300,50) ;
+	} else if ( amount === 2 ){
+		var base = 1020 ; 
+		ctx.fillStyle = "#28231E" ;
+		ctx.fillText(nowLeftHeight+' m',base-nowLeftHeight.toString().length*10,255,300,50) ;
+		ctx.fillText(nowRightHeight+' m',base-nowRightHeight.toString().length*10,425,300,50) ;
 	}
 }
 
@@ -63,15 +192,27 @@ var countTime = function(){
 	}
 }
 
-var showTime = function(){
-	var timebase = 975 + (remainTime.toString().length ) * 25 ;
-	var temp = remainTime ;
-	while( temp >= 0 ){
-		ctx.drawImage(getImage(temp%10),timebase,400,50,50) ;
-		temp = Math.floor(temp/10) ;
-		timebase -= 50 ;
-		if ( temp === 0 )
-			break ;
+var showTime = function(amount){
+	if ( amount === 1 ){
+		var timebase = 975 + (remainTime.toString().length ) * 25 ;
+		var temp = remainTime ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10),timebase,400,50,50) ;
+			temp = Math.floor(temp/10) ;
+			timebase -= 50 ;
+			if ( temp === 0 )
+				break ;
+		}
+	}else if ( amount === 2 ){
+		var timebase = 975 + (remainTime.toString().length ) * 25 ;
+		var temp = remainTime ;
+		while( temp >= 0 ){
+			ctx.drawImage(getImage(temp%10),timebase,508,50,50) ;
+			temp = Math.floor(temp/10) ;
+			timebase -= 50 ;
+			if ( temp === 0 )
+				break ;
+		}
 	}
 }
 
@@ -81,8 +222,11 @@ var randomBox = function(){
 	}
 }
 
-var showNext = function(){
-	ctx.drawImage(getImage(nextBox),975,570,100,100) ;
+var showNext = function(amount){
+	if ( amount === 1 )
+		ctx.drawImage(getImage(nextBox),975,570,100,100) ;
+	else if ( amount === 2 )
+		ctx.drawImage(getImage(nextBox),975,638,100,100) ;
 }
 
 var createBox = function(type,inX,inY,inWidth,inHeight,inTreatment,inView){
@@ -171,6 +315,11 @@ var init = function(){
 
 var resetAll = function(spin){
 	nowHeight = 0 ;
+	nowLeftHeight = 0 ;
+	nowRightHeight = 0;
+	remainHeight = 0 ;
+	remainLeftHeight = 0 ;
+	remainRightHeight = 0 ;
 	hasFirstBox = false ;
 	offsetY = 0 ;
 	hook = createBox('rectangle',viewWidth / 2,50,0,0,"static",getImage("hook")) ;
@@ -210,6 +359,7 @@ var addFloor = function(){
 	if ( hasFirstBox === true )
 		return ;
 	var box = createBox('rectangle',0,viewHeight + 5 ,viewWidth * 3,10,"static",getImage("box1")) ;
+	box.hide = true ;
 	world.add(box);
 	boxList.push(box) ;
 }
@@ -270,6 +420,8 @@ var toGameOver = function(){
 	ctx.fillText("GAMEOVER",100,150,1000,100) ;
 	clearTimeout(countTimer);
 	clearTimeout(addHeightTimer);
+	clearTimeout(addLeftHeightTimer);
+	clearTimeout(addRightHeightTimer);
 }
 
 var addHeight = function(){
@@ -278,7 +430,29 @@ var addHeight = function(){
 			nowHeight += 1 ;
 			remainHeight -= 1 ;
 		} else {
-			clearTimeout(addHeight) ;
+			clearTimeout(addHeightTimer) ;
+		}
+	}
+}
+
+var addLeftHeight = function(){
+	if ( isGameOver === false ){
+		if ( remainLeftHeight > 0 ){
+			nowLeftHeight += 1 ;
+			remainLeftHeight -= 1 ;
+		} else {
+			clearTimeout(addLeftHeightTimer) ;
+		}
+	}
+}
+
+var addRightHeight = function(){
+	if ( isGameOver === false ){
+		if ( remainRightHeight > 0 ){
+			nowRightHeight += 1 ;
+			remainRightHeight -= 1 ;
+		} else {
+			clearTimeout(addRightHeightTimer) ;
 		}
 	}
 }
@@ -288,29 +462,41 @@ var boxTouch = function(amount){
 		if ( amount === 1 ){
 			if ( boxList.length <= 2 )
 				return ;
-			if ( boxList[boxList.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && boxList[boxList.length-1].state.vel.y === 0 ){
-				remainHeight = boxList[boxList.length-1].geometry.height ;
+			if ( boxList[boxList.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && boxList[boxList.length-1].state.vel.y === 0 && boxList[boxList.length-1].state.angular.vel === 0 ){
+				var total = 0 ;
+				for ( var i = 2 ; i < boxList.length ; i ++ )
+					total += boxList[i].geometry.height ;
+				remainHeight = total - nowHeight ;
 				addHeightTimer = setInterval(addHeight,20) ;
 				isBoxTouch = true ;
 			}
 		} else if ( amount === 2 ){
 			if ( boxList.length <= 3 )
 				return ;
-			if ( boxList[boxList.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && boxList[boxList.length-1].state.vel.y === 0 ){
-				/*
-				if ( boxList[boxList.length-1].state.pos.y  > hook.state.pos.y + hook.geometry.height ){ 
-					if ( Math.abs(boxList[boxList.length-1].state.pos.x - leftMax.state.pos.x) <= Math.abs(boxList[boxList.length-1].state.pos.x - rightMax.state.pos.x) ){
-						leftMax = boxList[boxList.length-1] ;
-						remainHeight = 
-					} else {
-						rightMax = boxList[boxList.length-1] ;
-					}
-					addHeightTimer = setInterval(addHeight,20) ;
-					isBoxTouch = true ;
+			if ( isPush === false ){
+				if ( Math.abs(boxList[boxList.length-1].state.pos.x - leftMax.state.pos.x) <= Math.abs(boxList[boxList.length-1].state.pos.x - rightMax.state.pos.x) ){
+					leftMax = boxList[boxList.length-1] ;
+					leftTower.push(leftMax) ;
+				} else {
+					rightMax = boxList[boxList.length-1] ;
+					rightTower.push(rightMax) ;
 				}
-				*/
-				remainHeight = boxList[boxList.length-1].geometry.height ;
-				addHeightTimer = setInterval(addHeight,20) ;
+				isPush = true ;
+			}
+			if ( leftTower.length > 0 && leftTower[leftTower.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && leftTower[leftTower.length-1].state.vel.y === 0 && leftTower[leftTower.length-1].state.angular.vel === 0   ){
+				var totalLeft = 0  ;
+				for ( var i = 0 ; i < leftTower.length ; i ++ )
+					totalLeft += leftTower[i].geometry.height ;
+				remainLeftHeight = totalLeft - nowLeftHeight ;
+				addLeftHeightTimer = setInterval(addLeftHeight,20) ;
+				isBoxTouch = true ;
+			} 
+			if ( rightTower.length > 0 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
+				var totalRight = 0  ;
+				for ( var i = 0 ; i < rightTower.length ; i ++ )
+					totalRight += rightTower[i].geometry.height ;
+				remainRightHeight = totalRight - nowRightHeight ;
+				addRightHeightTimer = setInterval(addRightHeight,20) ;
 				isBoxTouch = true ;
 			}
 		}
@@ -357,6 +543,7 @@ var reloadHook = function(){
 	hookBox.state.pos.y = hookBox.geometry.height + hook.state.pos.y ;
 	hookload = true ;
 	randomBox();
+	hook.view = getImage('hook') ;
 }
 
 var drawBox = function(){
@@ -386,11 +573,13 @@ var setCanvas = function(){
 	ctx.clearRect( (-1)*width , (-1)*height , width*2, height*2 );
 	var resizer = SlEEPBAG.canvasAutoResizer;
 	resizer.setCenter();
-	ctx.font="50px Arial";
+	ctx.font="30px Arial";
 }
 
 var addBox = function(e){
 	if ( hookload === true ){ 
+		hook.view = getImage('hook2') ;
+		isPush = false ;
 		isBoxTouch = false ;
 		hookload = false ;
 		hookBox.treatment = 'dynamic' ;
@@ -402,35 +591,107 @@ var addBox = function(e){
 	}
 }
 
-var drawBackGround = function(){
-	ctx.drawImage(getImage('game_bg'),c.width/2-940/2,0,940,750) ;
+var gameOverMouseOver = function(e){
+	var tempX , tempY ;
+	if (IE) { 
+		tempX = event.clientX + document.body.scrollLeft ;
+		tempY = event.clientY + document.body.scrollTop;
+	} else {  
+		tempX = e.pageX ;
+		tempY = e.pageY ;
+	}	
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = 1285 / 750 ;
+	var ratio2 = offsetX / offsetY ;
+	var w , h ;
+	if ( ratio > ratio2 ){
+		h = offsetX / ratio ;
+		w = offsetX ;
+	} else {
+		w = offsetY * ratio ;
+		h = offsetY ;
+	}
+	if ( Math.abs( (tempX - 200 * w / 1285 ) - ((offsetX - w) / 2)  )  <=  100 * w / 1285 )  {
+		document.body.style.cursor = "pointer" ;
+	} else {
+		document.body.style.cursor = "default" ;
+	}
 }
 
-var stageAllSet = function(){
+var gameOverMouseClick = function(e){
+	var tempX , tempY ;
+	if (IE) { 
+		tempX = event.clientX + document.body.scrollLeft ;
+		tempY = event.clientY + document.body.scrollTop;
+	} else {  
+		tempX = e.pageX ;
+		tempY = e.pageY ;
+	}	
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratioX = 1285 / offsetX ;
+	var ratioY = 750 / offsetY ;
+	var ratio = 1285 / 750 ;
+	var ratio2 = offsetX / offsetY ;
+	var w , h ;
+	if ( ratio > ratio2 ){
+		h = offsetX / ratio ;
+		w = offsetX ;
+	} else {
+		w = offsetY * ratio ;
+		h = offsetY ;
+	}
+
+}
+
+var drawBackGroundRight = function(amount){
+	if ( amount === 1 )
+		ctx.drawImage(getImage('game_bg_2'),c.width/2-940/2+768,0,172,750) ;
+	else {
+		ctx.drawImage(getImage('game_bg2_2'),c.width/2-940/2+768,0,172,750) ;
+	}
+}
+
+var drawBackGroundLeft = function(amount){
+	if ( amount === 1 )
+		ctx.drawImage(getImage('game_bg_1'),c.width/2-940/2,0,768,750) ;
+	else {
+		ctx.drawImage(getImage('game_bg2_1'),c.width/2-940/2,0,768,750) ;
+	}
+}
+
+var stageAllSet = function(amount){
 	if ( FirstEnterPage === true ){
 		randomBox();
 	}
 	setCanvas();
-	drawBackGround();
+	drawBackGroundLeft(amount);
 	addFloor();
 	drawBox();
+	drawBackGroundRight(amount);
 	fixBoxCollision();
-	showNext();
-	showTime();
-	showNowHeight();
-
+	showNext(amount);
+	showTime(amount);
+	showNowHeight(amount);
+	showGoalHeight(amount);
+	showGoalTag(amount);
+	showNowTag(amount);
+	showTag(amount);
+	showBlock();
 }
 
 // stage 1 
 
 var Stage1 = function(){
-	stageAllSet();
+	stageAllSet(1);
 	initFirstBox(1);
 	drawHook(false);
 	moveHook(false);
 	boxTouch(1);
 	if ( isGameOver === true ){
-		document.onclick= function(e){;} ;
+		document.onclick = gameOverMouseClick ;
+		document.onmousemove = gameOverMouseOver ;
 		toGameOver();
 	} else {
 		if ( FirstEnterPage === true ){
@@ -450,13 +711,14 @@ var Stage1 = function(){
 // stage3
 
 var Stage3 = function(){
-	stageAllSet();
+	stageAllSet(2);
 	initFirstBox(2);
 	drawHook(false);
 	moveHook(false);
 	boxTouch(2);
 	if ( isGameOver === true ){
-		document.onclick= function(e){;} ;
+		document.onclick = gameOverMouseClick ;
+		document.onmousemove = gameOverMouseOver ;
 		toGameOver();
 	} else {
 		if ( FirstEnterPage === true ){
@@ -475,13 +737,14 @@ var Stage3 = function(){
 
 // stage4
 var Stage4 = function(){
-	stageAllSet();
+	stageAllSet(1);
 	initFirstBox(1);
 	drawHook(true);
 	moveHook(true);
 	boxTouch(1);
 	if ( isGameOver === true ){
-		document.onclick= function(e){;} ;
+		document.onclick = gameOverMouseClick ;
+		document.onmousemove = gameOverMouseOver ;
 		toGameOver();
 	} else {
 		if ( FirstEnterPage === true ){
