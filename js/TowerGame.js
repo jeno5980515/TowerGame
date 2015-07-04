@@ -1,15 +1,18 @@
 var c ;
 var imageList = ["hook","hook2","box1","box2","game_bg_1","game_bg_2",'game_bg2_1','game_bg2_2','0','1','2','3','4','5','6','7','8','9',
-				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2'] ;
+				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2',
+				  "box_small","box_small2","box_small3","box_mid","box_mid2","base","box_big","box_big2","box_super","box_super2","box_other",
+				  "box_other2","box_other3","box_other4"] ;
 var simpleBoxList = ["box1","box2"] ;
-var allBoxList = [] ;
-var randomType = 0 ;
+var allBoxList = ["box_small","box_small2","box_small3","box_mid","box_mid2","box_big","box_big2","box_super","box_super2",
+				   "box_other","box_other2","box_other3","box_other4"] ;
+var randomType = 1 ;
 var leftTower = [] , rightTower = [] ;
 var imageMap = {} ;
 var resulotion ;
 var width , heigth ;
 var ctx ;
-var nowPage = 'stage3' ;
+var nowPage = 'stage4' ;
 var boxList = [] ;
 var hasFirstBox = false ;
 var isGameOver = false ;
@@ -40,18 +43,47 @@ var goalHeight = 500 ;
 var nowLeftHeight ;
 var nowRightHeight ;
 var isPush = false ;
+var amount ;
 
 var lastBox = {
 	x : 0 ,
 	y : 0 
 }
 var hook , hookBox ;
-
+var boxType = {};
 var IE = ("ActiveXObject" in window) ;
 var pageTimer ; 
 var world;
 
 //set all 
+
+var makeType = function(w,h,m){
+	return {width:w,height:h,size:m} ;
+}
+
+var detectPoly = function(name){
+	if ( name === 'box_other' || name === 'box_other2'||  name === 'box_other3' || name === 'box_other4')
+		return true ;
+	else 
+		return false ;
+}
+
+var makeBoxType = function(){
+	boxType['base'] = makeType(139,119,5) ;
+	boxType['box_super'] = makeType(218,90,5) ;
+	boxType['box_super2'] = makeType(218,75,4) ;
+	boxType['box_big'] = makeType(179,90,5) ;
+	boxType['box_big2'] = makeType(179,75,4) ;
+	boxType['box_mid'] = makeType(139,119,5) ;
+	boxType['box_mid2'] = makeType(139,104,4) ;
+	boxType['box_small'] = makeType(139,89,5) ;
+	boxType['box_small2'] = makeType(139,76,4) ;
+	boxType['box_small3'] = makeType(129,89,5) ;
+	boxType['box_other'] = makeType(203,69,4);
+	boxType['box_other2'] = makeType(203,69,4);
+	boxType['box_other3'] = makeType(119,89,5);
+	boxType['box_other4'] = makeType(119,89,5);
+}
 
 var showBlock = function(){
 	ctx.fillStyle = 'white' ;
@@ -59,7 +91,7 @@ var showBlock = function(){
 	ctx.fillRect(c.width-(c.width/2-940/2) , 0, c.width/2-940/2 , c.height);
 }
 
-var showTag = function(amount){
+var showTag = function(){
 	if ( amount === 1 ){
 		ctx.drawImage(getImage('tag'),896,706-(706-228)*nowHeight/goalHeight,37,18) ;
 		ctx.drawImage(getImage('tag2'),896,680-(706-228)*nowHeight/goalHeight+43,37,(706-228)*nowHeight/goalHeight) ;
@@ -74,7 +106,7 @@ var showTag = function(amount){
 	}
 }
 
-var showNowTag = function(amount){
+var showNowTag = function(){
 	if ( amount === 1 ){
 		ctx.drawImage(getImage('nowtag'),795,708-(708-228)*nowHeight/goalHeight,95,32) ;
 		var base = 835 + (nowHeight.toString().length - 1 ) * 8 ;
@@ -116,7 +148,7 @@ var showNowTag = function(amount){
 	}
 }
 
-var showGoalTag = function(amount){
+var showGoalTag = function(){
 	if ( amount === 1 ){
 		ctx.drawImage(getImage('goaltag'),795,228,95,32) ;
 		var base = 835 + (goalHeight.toString().length - 1 ) * 8 ;
@@ -158,7 +190,7 @@ var showGoalTag = function(amount){
 	}
 }
 
-var showGoalHeight = function(amount){
+var showGoalHeight = function(){
 	if ( amount === 1 ){
 		var base = 1005 ; 
 		ctx.fillStyle = "#C5453E" ;
@@ -171,7 +203,7 @@ var showGoalHeight = function(amount){
 	}
 }
 
-var showNowHeight = function(amount){
+var showNowHeight = function(){
 	if ( amount === 1 ){
 		var base = 1005 ; 
 		ctx.fillStyle = "#28231E" ;
@@ -192,7 +224,7 @@ var countTime = function(){
 	}
 }
 
-var showTime = function(amount){
+var showTime = function(){
 	if ( amount === 1 ){
 		var timebase = 975 + (remainTime.toString().length ) * 25 ;
 		var temp = remainTime ;
@@ -219,18 +251,34 @@ var showTime = function(amount){
 var randomBox = function(){
 	if ( randomType === 0 ){
 		nextBox = simpleBoxList[Math.floor(Math.random() * simpleBoxList.length)] ;
+	} else {
+		nextBox = allBoxList[Math.floor(Math.random() * allBoxList.length)] ;
 	}
 }
 
-var showNext = function(amount){
+var showNext = function(){
 	if ( amount === 1 )
-		ctx.drawImage(getImage(nextBox),975,570,100,100) ;
+		ctx.drawImage(getImage(nextBox),1015-boxType[nextBox].width*21/100,570,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
 	else if ( amount === 2 )
-		ctx.drawImage(getImage(nextBox),975,638,100,100) ;
+		ctx.drawImage(getImage(nextBox),1015-boxType[nextBox].width*21/100,638,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
 }
 
 var createBox = function(type,inX,inY,inWidth,inHeight,inTreatment,inView){
 	return Physics.body(type,{x: inX , y: inY , width: inWidth , height: inHeight , treatment: inTreatment , view: inView });
+}
+
+var createPoly = function(type,name,inX,inY,inWidth,inHeight,inTreatment,inView){
+	var v = [] ;
+	if ( name === 'box_other'){
+		v = [{ x: 0, y: 67 },{ x: 35, y: 0 },{ x: 202, y: 0 },{ x: 171, y: 67 }] ;
+	} else if ( name === 'box_other2' ){
+		v = [{ x: 0, y: 67 },{ x: 35, y: 0 },{ x: 202, y: 0 },{ x: 171, y: 67 }] ;
+	} else if ( name === 'box_other3' ){
+		v = [{ x: 0, y: 0 },{ x: 20, y: 77 },{ x: 100, y: 77 },{ x: 118, y: 0 }] ;
+	} else if ( name === 'box_other4' ){
+		v = [{ x: 21, y: 0 },{ x: 0, y: 88 },{ x: 118, y: 88 },	{ x: 100, y: 0 }] ;
+	}
+	return Physics.body(type,{vertices:v, treatment: inTreatment , view: inView });
 }
 
 var makeImage = function(source){
@@ -276,6 +324,7 @@ var drawBody = function( body, view, ctx, offset ){
 
 var init = function(){
 	makeAllImage();
+	makeBoxType();
 	SlEEPBAG.canvasAutoResizer.load(function(self){
 		self.canvasWidth = 1285;
 		self.canvasHeight = 750;
@@ -324,8 +373,19 @@ var resetAll = function(spin){
 	offsetY = 0 ;
 	hook = createBox('rectangle',viewWidth / 2,50,0,0,"static",getImage("hook")) ;
 	hook.state.angular.pos = Math.PI / 2 ;
-	hookBox = createBox('rectangle',0,0,100,100,"static",getImage("box1")) ;
+	var type ;
+	if ( randomType === 0 )
+		type = simpleBoxList[Math.floor(Math.random() * simpleBoxList.length)] ;
+	else 
+		type = allBoxList[Math.floor(Math.random() * allBoxList.length)] ;
+	if ( detectPoly(type) === false ){
+		hookBox = createBox('rectangle',0,0,boxType[type].width,boxType[type].height,"static",getImage(type)) ;
+	} else {
+		hookBox = createPoly('convex-polygon',type,0,0,boxType[type].width,boxType[type].height,"static",getImage(type)) ;
+	}
+	hookBox.state.vel.y = 0 ;
 	hookBox.restitution = 0 ;
+	hookBox.size = boxType[type].size ; 
 	hookBox.cof = 3 ;
 	hookBox.label = 'box' ;
 	world.add(hook);
@@ -334,24 +394,24 @@ var resetAll = function(spin){
 	countTimer = setInterval(countTime,1000);
 }
 
-var initFirstBox = function(amount){
+var initFirstBox = function(){
 	if ( hasFirstBox === true )
 		return ;
 	if ( amount === 1 ){
-		var box = createBox('rectangle',viewWidth / 2 + 50 ,viewHeight - 50,100,100,"static",getImage("box1")) ;
+		var box = createBox('rectangle',viewWidth / 2 + 50 ,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
 		boxList.push(box) ;
 		hasFirstBox = true ;
 	} else if ( amount === 2 ){
-		var box = createBox('rectangle',420,viewHeight - 50,100,100,"static",getImage("box1")) ;
+		var box = createBox('rectangle',420,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
-		boxList.push(box) ;
-		box = createBox('rectangle',680,viewHeight - 50,100,100,"static",getImage("box1")) ;
+		leftMax = box ;
+		leftTower.push(box);
+		box = createBox('rectangle',680,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
-		boxList.push(box) ;
+		rightMax = box ;
+		rightTower.push(box);
 		hasFirstBox = true ;
-		leftMax = boxList[1] ;
-		rightMax = boxList[2] ;
 	}
 }
 
@@ -361,39 +421,85 @@ var addFloor = function(){
 	var box = createBox('rectangle',0,viewHeight + 5 ,viewWidth * 3,10,"static",getImage("box1")) ;
 	box.hide = true ;
 	world.add(box);
-	boxList.push(box) ;
+	if ( amount === 1 )
+		boxList.push(box) ;
+	else {
+		leftTower.push(box) ;
+		rightTower.push(box) ;
+	}
 }
 
-var moveUp = function(amount){
+var moveUp = function(){
 	if ( amount === 1 ){
 		upperBound = 600 ;
+		if ( boxList[boxList.length-1].state.pos.y <= upperBound && boxList[boxList.length-1].state.vel.y === 0 ){
+			for ( var i = 0 ; i < boxList.length ; i ++ ){
+				boxList[i].treatment = 'static' ;
+			}
+			for ( var i = 0 ; i < boxList.length ; i ++ ){
+				boxList[i].state.pos.y += 2  ;
+			}
+			for ( var i = 0 ; i < boxList.length ; i ++ ){
+				var h = boxList[i].geometry.height ;
+				if ( h === undefined )
+					h = 75 ;
+				if (  viewHeight - boxList[i].state.pos.y > h  )
+					boxList[i].treatment = 'dynamic' ;
+			}
+			offsetY += 2 ;
+		} 
 	} else if ( amount === 2 ){
 		upperBound = 550 ;
+		if ( (leftTower[leftTower.length-1].state.pos.y <= upperBound && leftTower[leftTower.length-1].state.vel.y === 0) ||
+			 (rightTower[rightTower.length-1].state.pos.y <= upperBound && rightTower[rightTower.length-1].state.vel.y === 0) ){
+			for ( var i = 0 ; i < leftTower.length ; i ++ ){
+				leftTower[i].state.vel.y = 0 ;
+				leftTower[i].treatment = 'static' ;
+			}
+			for ( var i = 0 ; i < rightTower.length ; i ++ ){
+				rightTower[i].state.vel.y = 0 ;
+				rightTower[i].treatment = 'static' ;
+			}
+			for ( var i = 0 ; i < leftTower.length ; i ++ ){
+				leftTower[i].state.pos.y += 2  ;
+			}
+			for ( var i = 0 ; i < rightTower.length ; i ++ ){
+				rightTower[i].state.pos.y += 2  ;
+			}
+			for ( var i = 0 ; i < leftTower.length ; i ++ ){
+				var h = leftTower[i].geometry.height ;
+				if ( h === undefined )
+					h = 75 ;
+				if (  viewHeight - leftTower[i].state.pos.y > h  )
+					leftTower[i].treatment = 'dynamic' ;
+			}
+			for ( var i = 0 ; i < rightTower.length ; i ++ ){
+				var h = rightTower[i].geometry.height ;
+				if ( h === undefined )
+					h = 75 ;
+				if (  viewHeight - rightTower[i].state.pos.y > h  )
+					rightTower[i].treatment = 'dynamic' ;
+			}
+			offsetY += 2 ;
+		} 
 	}
-	if ( boxList[boxList.length-1].state.pos.y <= upperBound && boxList[boxList.length-1].state.vel.y === 0 ){
-		for ( var i = 0 ; i < boxList.length ; i ++ ){
-			boxList[i].treatment = 'static' ;
-		}
-		for ( var i = 0 ; i < boxList.length ; i ++ ){
-			boxList[i].state.pos.y += 2  ;
-		}
-		for ( var i = 0 ; i < boxList.length ; i ++ ){
-			if (  viewHeight - boxList[i].state.pos.y > boxList[i].geometry.height  )
-				boxList[i].treatment = 'dynamic' ;
-		}
-		offsetY += 2 ;
-	} 
 }
 
 var drawHook = function(spin){
 	if ( hookload === true ){
 		if ( spin === false ){
-			hookBox.state.pos.y = hookBox.geometry.height + hook.state.pos.y ;
+			var h = hookBox.geometry.height ;
+			if ( hookBox.geometry.height === undefined )
+				h = 75 ;
+			hookBox.state.pos.y = h + hook.state.pos.y ;
 			hookBox.state.pos.x = hook.state.pos.x ;
 		} else {
-			hookBox.state.pos.y = (hookBox.geometry.height) * Math.sin(hookBox.state.angular.pos) + hook.state.pos.y  ;
-			hookBox.state.pos.x = (hookBox.geometry.height) * Math.cos(hookBox.state.angular.pos) + hook.state.pos.x;
-			hookBox.state.angular.pos = hook.state.angular.pos ;
+			var h = hookBox.geometry.height ;
+			if ( hookBox.geometry.height === undefined )
+				h = 75 ;
+			hookBox.state.pos.y = (h) * Math.cos(hookBox.state.angular.pos) + h / 2   ;
+			hookBox.state.pos.x = (-1) * (h) * Math.sin(hookBox.state.angular.pos)  + hook.state.pos.x ;
+			hookBox.state.angular.pos = hook.state.angular.pos - Math.PI / 2 ;
 		}
 		drawBody(hookBox,hookBox.view,ctx,hookBox.offset);
 	}
@@ -457,98 +563,117 @@ var addRightHeight = function(){
 	}
 }
 
-var boxTouch = function(amount){
-	if ( isBoxTouch === false ){
-		if ( amount === 1 ){
-			if ( boxList.length <= 2 )
-				return ;
-			if ( boxList[boxList.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && boxList[boxList.length-1].state.vel.y === 0 && boxList[boxList.length-1].state.angular.vel === 0 ){
-				var total = 0 ;
-				for ( var i = 2 ; i < boxList.length ; i ++ )
-					total += boxList[i].geometry.height ;
-				remainHeight = total - nowHeight ;
-				addHeightTimer = setInterval(addHeight,20) ;
-				isBoxTouch = true ;
-			}
-		} else if ( amount === 2 ){
-			if ( boxList.length <= 3 )
-				return ;
-			if ( isPush === false ){
-				if ( Math.abs(boxList[boxList.length-1].state.pos.x - leftMax.state.pos.x) <= Math.abs(boxList[boxList.length-1].state.pos.x - rightMax.state.pos.x) ){
-					leftMax = boxList[boxList.length-1] ;
-					leftTower.push(leftMax) ;
-				} else {
-					rightMax = boxList[boxList.length-1] ;
-					rightTower.push(rightMax) ;
-				}
-				isPush = true ;
-			}
-			if ( leftTower.length > 0 && leftTower[leftTower.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && leftTower[leftTower.length-1].state.vel.y === 0 && leftTower[leftTower.length-1].state.angular.vel === 0   ){
-				var totalLeft = 0  ;
-				for ( var i = 0 ; i < leftTower.length ; i ++ )
-					totalLeft += leftTower[i].geometry.height ;
-				remainLeftHeight = totalLeft - nowLeftHeight ;
-				addLeftHeightTimer = setInterval(addLeftHeight,20) ;
-				isBoxTouch = true ;
-			} 
-			if ( rightTower.length > 0 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + hookBox.geometry.height && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
-				var totalRight = 0  ;
-				for ( var i = 0 ; i < rightTower.length ; i ++ )
-					totalRight += rightTower[i].geometry.height ;
-				remainRightHeight = totalRight - nowRightHeight ;
-				addRightHeightTimer = setInterval(addRightHeight,20) ;
-				isBoxTouch = true ;
-			}
+var boxTouch = function(){
+	var h = hookBox.geometry.height ;
+	if ( hookBox.geometry.height === undefined )
+		h = 75 ;
+	if ( amount === 1 && isBoxTouch === false ){
+		if ( boxList.length <= 2 )
+			return ;
+		if ( boxList[boxList.length-1].state.pos.y >= hookBox.state.pos.y + h && boxList[boxList.length-1].state.vel.y === 0 && boxList[boxList.length-1].state.angular.vel === 0 ){
+			var total = 0 ;
+			for ( var i = 2 ; i < boxList.length ; i ++ )
+				total += boxList[i].size ;
+			remainHeight = total - nowHeight ;
+			addHeightTimer = setInterval(addHeight,20) ;
+			isBoxTouch = true ;
+		}
+	} else if ( amount === 2 ){
+		if ( leftTower.length > 2 && leftTower[leftTower.length-1].state.pos.y >= hookBox.state.pos.y + h && leftTower[leftTower.length-1].state.vel.y === 0 && leftTower[leftTower.length-1].state.angular.vel === 0   ){
+			var totalLeft = 0  ;
+			for ( var i = 2 ; i < leftTower.length ; i ++ )
+				totalLeft += leftTower[i].size ;
+			remainLeftHeight = totalLeft - nowLeftHeight ;
+			addLeftHeightTimer = setInterval(addLeftHeight,20) ;
+		} 
+		else if ( rightTower.length > 2 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + h && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
+			var totalRight = 0  ;
+			for ( var i = 2 ; i < rightTower.length ; i ++ )
+				totalRight += rightTower[i].size ;
+			remainRightHeight = totalRight - nowRightHeight ;
+			addRightHeightTimer = setInterval(addRightHeight,20) ;
 		}
 	}
 }
 
-var checkBox = function(amount){
+var checkBox = function(){
 	if ( amount === 1 ){
 		if ( boxList.length <= 2 )
 			return ;
 		for ( var i = 2 ; i < boxList.length ; i ++ ){
-			if ( boxList[i].state.pos.y >= viewHeight - boxList[i].geometry.height && boxList[i].treatment !== 'static' )  {
+			var h = boxList[i].geometry.height ;
+			if ( h === undefined )
+				h = 75 ;
+			if ( boxList[i].state.pos.y >= viewHeight - h && boxList[i].treatment !== 'static' )  {
 				toGameOver();
 				return ;
 			}
 		}
 	} else if ( amount === 2 ){
-		if ( boxList.length <= 3 )
+		if ( leftTower.length <= 2 && rightTower.length <= 2  )
 			return ;
-		if ( boxList[boxList.length-1].state.pos.y  > hook.state.pos.y + hook.geometry.height ){ 
-			if ( Math.abs(boxList[boxList.length-1].state.pos.x - leftMax.state.pos.x) <= Math.abs(boxList[boxList.length-1].state.pos.x - rightMax.state.pos.x) ){
-				leftMax = boxList[boxList.length-1] ;
-			} else {
-				rightMax = boxList[boxList.length-1] ;
-			}
-		}
-		for ( var i = 3 ; i < boxList.length ; i ++ ){
-			if ( boxList[i].state.pos.y  >= viewHeight - boxList[i].geometry.height / 2  && boxList[i].treatment !== 'static' )  {
+		for ( var i = 2 ; i < leftTower.length ; i ++ ){
+			var h = leftTower[i].geometry.height ;
+			if ( h === undefined )
+				h = 75 ;
+			if ( leftTower[i].state.pos.y  >= viewHeight - h / 2  && leftTower[i].treatment !== 'static' )  {
 				toGameOver();
 				return ;
 			}
 		}
-		if ( leftMax.state.pos.y  >= viewHeight +  leftMax.geometry.height  ||  rightMax.state.pos.y >= viewHeight + rightMax.geometry.height  ){
+		for ( var i = 2 ; i < rightTower.length ; i ++ ){
+			var h = rightTower[i].geometry.height ;
+			if ( h === undefined )
+				h = 75 ;
+			if ( rightTower[i].state.pos.y  >= viewHeight - h / 2  && rightTower[i].treatment !== 'static' )  {
+				toGameOver();
+				return ;
+			}
+		}
+		var h = leftMax.geometry.height ;
+		if ( h === undefined )
+			h = 75 ;
+		var h2 = rightMax.geometry.height ;
+		if ( h2 === undefined )
+			h2 = 75 ;
+		if ( leftMax.state.pos.y  >= viewHeight +  h  ||  rightMax.state.pos.y >= viewHeight + h2  ){
 			toGameOver() ;
 		}
 	}
 }
 
 var reloadHook = function(){
-	hookBox = createBox('rectangle',hook.state.pos.x,hook.state.pos.y ,100,100,"static",getImage(nextBox)) ;
+	var h = hookBox.geometry.height ;
+	if ( hookBox.geometry.height === undefined )
+		h = 75 ;
+	if ( detectPoly(nextBox) === false )
+		hookBox = createBox('rectangle',hook.state.pos.x,hook.state.pos.y ,boxType[nextBox].width,boxType[nextBox].height,"static",getImage(nextBox)) ;
+	else {
+		hookBox = createPoly('convex-polygon',nextBox,hook.state.pos.x,hook.state.pos.y,boxType[nextBox].width,boxType[nextBox].height,"static",getImage(nextBox)) ;
+	}
 	hookBox.restitution = 0 ;
 	hookBox.cof = 3 ;
 	hookBox.label = "box" ;
-	hookBox.state.pos.y = hookBox.geometry.height + hook.state.pos.y ;
+	hookBox.state.pos.y = h + hook.state.pos.y ;
+	hookBox.state.vel.y = 0 ;
+	hookBox.size = boxType[nextBox].size ; 
 	hookload = true ;
 	randomBox();
 	hook.view = getImage('hook') ;
 }
 
 var drawBox = function(){
-	for ( var i = 0 ; i < boxList.length ; i ++ ){
-		drawBody(boxList[i],boxList[i].view,ctx,boxList[i].offset);
+	if ( amount === 1 ){
+		for ( var i = 0 ; i < boxList.length ; i ++ ){
+			drawBody(boxList[i],boxList[i].view,ctx,boxList[i].offset);
+		}
+	} else {
+		for ( var i = 0 ; i < leftTower.length ; i ++ ){
+			drawBody(leftTower[i],leftTower[i].view,ctx,leftTower[i].offset);
+		}
+		for ( var i = 0 ; i < rightTower.length ; i ++ ){
+			drawBody(rightTower[i],rightTower[i].view,ctx,rightTower[i].offset);
+		}
 	}
 }
 
@@ -585,8 +710,20 @@ var addBox = function(e){
 		hookBox.treatment = 'dynamic' ;
 		hookBox.state.vel.x = 0 ;
 		hookBox.state.vel.y = 0 ;
+		hookBox.state.acc.y = 0 ;
+		hookBox.size = boxType[nextBox].size ; 
 		world.add(hookBox);
-		boxList.push(hookBox) ;
+		if ( amount === 1 )
+			boxList.push(hookBox) ;
+		else {
+			if ( Math.abs(hookBox.state.pos.x - leftMax.state.pos.x) <= Math.abs(hookBox.state.pos.x - rightMax.state.pos.x) ){
+				leftMax = hookBox ;
+				leftTower.push(hookBox) ;
+			} else {
+				rightMax = hookBox ;
+				rightTower.push(hookBox) ;
+			}
+		}
 		reloadTimer = setTimeout(reloadHook,2000); 
 	}
 }
@@ -645,7 +782,7 @@ var gameOverMouseClick = function(e){
 
 }
 
-var drawBackGroundRight = function(amount){
+var drawBackGroundRight = function(){
 	if ( amount === 1 )
 		ctx.drawImage(getImage('game_bg_2'),c.width/2-940/2+768,0,172,750) ;
 	else {
@@ -653,7 +790,7 @@ var drawBackGroundRight = function(amount){
 	}
 }
 
-var drawBackGroundLeft = function(amount){
+var drawBackGroundLeft = function(){
 	if ( amount === 1 )
 		ctx.drawImage(getImage('game_bg_1'),c.width/2-940/2,0,768,750) ;
 	else {
@@ -661,34 +798,35 @@ var drawBackGroundLeft = function(amount){
 	}
 }
 
-var stageAllSet = function(amount){
+var stageAllSet = function(){
 	if ( FirstEnterPage === true ){
 		randomBox();
 	}
 	setCanvas();
-	drawBackGroundLeft(amount);
+	drawBackGroundLeft();
 	addFloor();
 	drawBox();
-	drawBackGroundRight(amount);
+	drawBackGroundRight();
 	fixBoxCollision();
-	showNext(amount);
-	showTime(amount);
-	showNowHeight(amount);
-	showGoalHeight(amount);
-	showGoalTag(amount);
-	showNowTag(amount);
-	showTag(amount);
+	showNext();
+	showTime();
+	showNowHeight();
+	showGoalHeight();
+	showGoalTag();
+	showNowTag();
+	showTag();
 	showBlock();
 }
 
 // stage 1 
 
 var Stage1 = function(){
-	stageAllSet(1);
-	initFirstBox(1);
+	amount = 1 ;
+	stageAllSet();
+	initFirstBox();
 	drawHook(false);
 	moveHook(false);
-	boxTouch(1);
+	boxTouch();
 	if ( isGameOver === true ){
 		document.onclick = gameOverMouseClick ;
 		document.onmousemove = gameOverMouseOver ;
@@ -702,8 +840,8 @@ var Stage1 = function(){
 			}
 			document.onclick = addBox ;
 		}
-		checkBox(1);
-		moveUp(1);
+		checkBox();
+		moveUp();
 	}
 	FirstEnterPage = false ;
 }
@@ -711,11 +849,12 @@ var Stage1 = function(){
 // stage3
 
 var Stage3 = function(){
-	stageAllSet(2);
-	initFirstBox(2);
+	amount = 2 ;
+	stageAllSet();
+	initFirstBox();
 	drawHook(false);
 	moveHook(false);
-	boxTouch(2);
+	boxTouch();
 	if ( isGameOver === true ){
 		document.onclick = gameOverMouseClick ;
 		document.onmousemove = gameOverMouseOver ;
@@ -729,19 +868,20 @@ var Stage3 = function(){
 			}
 			document.onclick = addBox ;
 		}
-		checkBox(2);
-		moveUp(2);
+		checkBox();
+		moveUp();
 	}
 	FirstEnterPage = false ;
 }
 
 // stage4
 var Stage4 = function(){
-	stageAllSet(1);
-	initFirstBox(1);
+	amount = 1 ;
+	stageAllSet();
+	initFirstBox();
 	drawHook(true);
 	moveHook(true);
-	boxTouch(1);
+	boxTouch();
 	if ( isGameOver === true ){
 		document.onclick = gameOverMouseClick ;
 		document.onmousemove = gameOverMouseOver ;
@@ -755,8 +895,8 @@ var Stage4 = function(){
 			}
 			document.onclick = addBox ;
 		}
-		checkBox(1);
-		moveUp(1);
+		checkBox();
+		moveUp();
 	}
 	FirstEnterPage = false ;
 }
