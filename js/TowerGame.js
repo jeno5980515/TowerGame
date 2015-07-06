@@ -2,8 +2,9 @@ var c ;
 var imageList = ["hook","hook2","box1","box2","game_bg_1","game_bg_2",'game_bg2_1','game_bg2_2','0','1','2','3','4','5','6','7','8','9',
 				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2',
 				  "box_small","box_small2","box_small3","box_mid","box_mid2","base","box_big","box_big2","box_super","box_super2","box_other",
-				  "box_other2","box_other3","box_other4"] ;
-var simpleBoxList = ["box1","box2"] ;
+				  "box_other2","box_other3","box_other4",'fail','again','again2','win','next','next2','return','return2','teach','teach_button','teach_button2',
+				  'start' , 'start2','teach2','teach3','teach4','teach5'] ;
+var simpleBoxList = ["box_big","box_big2","box_super","box_super2"] ;
 var allBoxList = ["box_small","box_small2","box_small3","box_mid","box_mid2","box_big","box_big2","box_super","box_super2",
 				   "box_other","box_other2","box_other3","box_other4"] ;
 var randomType = 1 ;
@@ -12,18 +13,17 @@ var imageMap = {} ;
 var resulotion ;
 var width , heigth ;
 var ctx ;
-var nowPage = 'stage4' ;
+var nowPage = 'stage1' ;
 var boxList = [] ;
 var hasFirstBox = false ;
 var isGameOver = false ;
-var viewWidth = 1000;
-var viewHeight = 750;
+var viewWidth = 1500 ;
+var viewHeight = 780;
 var upperBound = 600 ;
 var upperBound2 = 550 ;
 var reloadTimer ;
-var offsetY = 0 ;
-var leftMaxY ;
-var rightMaxY ;
+var leftMax ;
+var rightMax ;
 var hookMoveSpeed = 5 ;
 var hookAngleSpeed = 0.02 ;
 var hookload = true ;
@@ -39,11 +39,16 @@ var addRightHeightTimer ;
 var remainHeight ;
 var remainLeftHeight ;
 var remainRightHeight ;
-var goalHeight = 500 ;
+var goalHeight = 3 ;
 var nowLeftHeight ;
 var nowRightHeight ;
 var isPush = false ;
+var isWin = false ;
 var amount ;
+var mouseOver = 'none' ;
+var spin = true ;
+var isTeach = false ;
+var isTeaching = false ;
 
 var lastBox = {
 	x : 0 ,
@@ -56,6 +61,79 @@ var pageTimer ;
 var world;
 
 //set all 
+
+var setMouseEvent = function(over,click){
+	document.onclick = click ;
+	document.onmousemove = over ;
+} 
+
+var getMouseSite = function(e){
+	var tempX , tempY ;
+	if (IE) { 
+		tempX = event.clientX + document.body.scrollLeft ;
+		tempY = event.clientY + document.body.scrollTop;
+	} else {  
+		tempX = e.pageX ;
+		tempY = e.pageY ;
+	}	
+	return {x:tempX,y:tempY} ;
+}
+
+var getRatio = function(offsetX,offsetY){
+	var ratio = 978 / 780 ;
+	var ratio2 = offsetX / offsetY ;
+	var w , h ;
+	if ( ratio > ratio2 ){
+		h = offsetX / ratio ;
+		w = offsetX ;
+	} else {
+		w = offsetY * ratio ;
+		h = offsetY ;
+	}
+	return {w:w,h:h} ;
+}
+
+var showTeachMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 388 * w / 978 ) - ((offsetX - w) / 2)  )  <=  73 * w / 978 &&
+		 Math.abs( (tempY - 418 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780 ) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'start' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var showTeachMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 388 * w / 978 ) - ((offsetX - w) / 2)  )  <=  73 * w / 978 &&
+		 Math.abs( (tempY - 418 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780 ) {
+		isTeach = false ;
+		isTeaching = false ;
+		mouseOver = 'none' ;
+		beginCountTime();
+	} 
+}
+
+
+var fixLeftAndRight = function(){
+	if ( leftMax.state.pos.x > rightMax.state.pos.x ){
+		var temp = leftMax;
+		leftMax = rightMax;
+		rightMax = temp ;
+	}
+}
 
 var makeType = function(w,h,m){
 	return {width:w,height:h,size:m} ;
@@ -93,53 +171,53 @@ var showBlock = function(){
 
 var showTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('tag'),896,706-(706-228)*nowHeight/goalHeight,37,18) ;
-		ctx.drawImage(getImage('tag2'),896,680-(706-228)*nowHeight/goalHeight+43,37,(706-228)*nowHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3'),896,723,37,19) ;
+		ctx.drawImage(getImage('tag'),742,738-(738-228)*nowHeight/goalHeight,37,18) ;
+		ctx.drawImage(getImage('tag2'),742,712-(738-228)*nowHeight/goalHeight+43,37,(738-228)*nowHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3'),742,755,37,19) ;
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('tag'),898,706-(706-222)*nowRightHeight/goalHeight,35,18) ;
-		ctx.drawImage(getImage('tag2'),898,680-(706-222)*nowRightHeight/goalHeight+43,35,(706-222)*nowRightHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3'),898,723,35,19) ;
-		ctx.drawImage(getImage('tag_2'),175,706-(706-222)*nowLeftHeight/goalHeight,35,18) ;
-		ctx.drawImage(getImage('tag2'),175,680-(706-222)*nowLeftHeight/goalHeight+43,35,(706-222)*nowLeftHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3_2'),175,723,35,19) ;
+		ctx.drawImage(getImage('tag'),744,738-(738-222)*nowRightHeight/goalHeight,35,18) ;
+		ctx.drawImage(getImage('tag2'),744,712-(738-222)*nowRightHeight/goalHeight+43,35,(738-222)*nowRightHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3'),744,755,35,19) ;
+		ctx.drawImage(getImage('tag_2'),22,738-(738-222)*nowLeftHeight/goalHeight,35,18) ;
+		ctx.drawImage(getImage('tag2'),22,712-(738-222)*nowLeftHeight/goalHeight+43,35,(738-222)*nowLeftHeight/goalHeight) ;
+		ctx.drawImage(getImage('tag3_2'),22,755,35,19) ;
 	}
 }
 
 var showNowTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('nowtag'),795,708-(708-228)*nowHeight/goalHeight,95,32) ;
-		var base = 835 + (nowHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('nowtag'),635,739-(739-228)*nowHeight/goalHeight,95,32) ;
+		var base = 675 + (nowHeight.toString().length - 1 ) * 8 ;
 		var temp = nowHeight ;
-		ctx.drawImage(getImage('M'),base,714-(714-234)*nowHeight/goalHeight,15,20) ;
+		ctx.drawImage(getImage('M'),base,745-(745-234)*nowHeight/goalHeight,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-234)*nowHeight/goalHeight,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,745-(745-234)*nowHeight/goalHeight,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
 				break ;
 		}
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('nowtag'),795,708-(708-222)*nowRightHeight/goalHeight,95,32) ;
-		var base = 835 + (nowRightHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('nowtag'),645,738-(738-222)*nowRightHeight/goalHeight,95,32) ;
+		var base = 685 + (nowRightHeight.toString().length - 1 ) * 8 ;
 		var temp = nowRightHeight ;
-		ctx.drawImage(getImage('M'),base,714-(714-228)*nowRightHeight/goalHeight,15,20) ;
+		ctx.drawImage(getImage('M'),base,744-(744-228)*nowRightHeight/goalHeight,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-228)*nowRightHeight/goalHeight,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,744-(744-228)*nowRightHeight/goalHeight,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
 				break ;
 		}
-		ctx.drawImage(getImage('nowtag2'),217,708-(708-222)*nowLeftHeight/goalHeight,95,32) ;
-		var base = 270 + (nowLeftHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('nowtag2'),62,738-(738-222)*nowLeftHeight/goalHeight,95,32) ;
+		var base = 115 + (nowLeftHeight.toString().length - 1 ) * 8 ;
 		var temp = nowLeftHeight ;
-		ctx.drawImage(getImage('M'),base,714-(714-228)*nowLeftHeight/goalHeight,15,20) ;
+		ctx.drawImage(getImage('M'),base,744-(744-228)*nowLeftHeight/goalHeight,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,714-(714-228)*nowLeftHeight/goalHeight,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,744-(744-228)*nowLeftHeight/goalHeight,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
@@ -150,38 +228,38 @@ var showNowTag = function(){
 
 var showGoalTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('goaltag'),795,228,95,32) ;
-		var base = 835 + (goalHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('goaltag'),635,236,95,32) ;
+		var base = 675 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
-		ctx.drawImage(getImage('M'),base,234,15,20) ;
+		ctx.drawImage(getImage('M'),base,242,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,234,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,242,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
 				break ;
 		}
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('goaltag'),795,222,95,32) ;
-		var base = 835 + (goalHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('goaltag'),645,230,95,32) ;
+		var base = 685 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
-		ctx.drawImage(getImage('M'),base,228,15,20) ;
+		ctx.drawImage(getImage('M'),base,236,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,228,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,236,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
 				break ;
 		}
-		ctx.drawImage(getImage('goaltag2'),217,221,95,32) ;
-		base = 270 + (goalHeight.toString().length - 1 ) * 8 ;
+		ctx.drawImage(getImage('goaltag2'),62,230,95,32) ;
+		base = 115 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
-		ctx.drawImage(getImage('M'),base,228,15,20) ;
+		ctx.drawImage(getImage('M'),base,236,15,20) ;
 		base -= 16 ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10+'2'),base,228,15,20) ;
+			ctx.drawImage(getImage(temp%10+'2'),base,236,15,20) ;
 			temp = Math.floor(temp/10) ;
 			base -= 16 ;
 			if ( temp === 0 )
@@ -192,27 +270,27 @@ var showGoalTag = function(){
 
 var showGoalHeight = function(){
 	if ( amount === 1 ){
-		var base = 1005 ; 
+		var base = 855 ; 
 		ctx.fillStyle = "#C5453E" ;
-		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,210,300,50) ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,220,300,50) ;
 	} else if ( amount === 2 ){
-		var base = 1020 ; 
+		var base = 855 ; 
 		ctx.fillStyle = "#C5453E" ;
-		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,183,300,50) ;
-		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,355,300,50) ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,187,300,50) ;
+		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,365,300,50) ;
 	}
 }
 
 var showNowHeight = function(){
 	if ( amount === 1 ){
-		var base = 1005 ; 
+		var base = 855 ; 
 		ctx.fillStyle = "#28231E" ;
-		ctx.fillText(nowHeight+' m',base-nowHeight.toString().length*10,305,300,50) ;
+		ctx.fillText(nowHeight+' m',base-nowHeight.toString().length*10,320,300,50) ;
 	} else if ( amount === 2 ){
-		var base = 1020 ; 
+		var base = 855 ; 
 		ctx.fillStyle = "#28231E" ;
-		ctx.fillText(nowLeftHeight+' m',base-nowLeftHeight.toString().length*10,255,300,50) ;
-		ctx.fillText(nowRightHeight+' m',base-nowRightHeight.toString().length*10,425,300,50) ;
+		ctx.fillText(nowLeftHeight+' m',base-nowLeftHeight.toString().length*10,260,300,50) ;
+		ctx.fillText(nowRightHeight+' m',base-nowRightHeight.toString().length*10,438,300,50) ;
 	}
 }
 
@@ -226,20 +304,20 @@ var countTime = function(){
 
 var showTime = function(){
 	if ( amount === 1 ){
-		var timebase = 975 + (remainTime.toString().length ) * 25 ;
+		var timebase = 825 + (remainTime.toString().length ) * 25 ;
 		var temp = remainTime ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10),timebase,400,50,50) ;
+			ctx.drawImage(getImage(temp%10),timebase,420,50,50) ;
 			temp = Math.floor(temp/10) ;
 			timebase -= 50 ;
 			if ( temp === 0 )
 				break ;
 		}
 	}else if ( amount === 2 ){
-		var timebase = 975 + (remainTime.toString().length ) * 25 ;
+		var timebase = 820 + (remainTime.toString().length ) * 25 ;
 		var temp = remainTime ;
 		while( temp >= 0 ){
-			ctx.drawImage(getImage(temp%10),timebase,508,50,50) ;
+			ctx.drawImage(getImage(temp%10),timebase,525,50,50) ;
 			temp = Math.floor(temp/10) ;
 			timebase -= 50 ;
 			if ( temp === 0 )
@@ -258,9 +336,9 @@ var randomBox = function(){
 
 var showNext = function(){
 	if ( amount === 1 )
-		ctx.drawImage(getImage(nextBox),1015-boxType[nextBox].width*21/100,570,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
+		ctx.drawImage(getImage(nextBox),860-boxType[nextBox].width*21/100,600,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
 	else if ( amount === 2 )
-		ctx.drawImage(getImage(nextBox),1015-boxType[nextBox].width*21/100,638,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
+		ctx.drawImage(getImage(nextBox),860-boxType[nextBox].width*21/100,680,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
 }
 
 var createBox = function(type,inX,inY,inWidth,inHeight,inTreatment,inView){
@@ -326,8 +404,8 @@ var init = function(){
 	makeAllImage();
 	makeBoxType();
 	SlEEPBAG.canvasAutoResizer.load(function(self){
-		self.canvasWidth = 1285;
-		self.canvasHeight = 750;
+		self.canvasWidth = 978;
+		self.canvasHeight = 780;
 		var gameArea = self.getGameArea();
 		document.body.appendChild(gameArea); 
 	});
@@ -335,6 +413,55 @@ var init = function(){
 	resulotion = SlEEPBAG.canvasAutoResizer.getResolution();
 	width = c.width , height = c.height ;
 	ctx = c.getContext("2d");
+	ctx.font="30px Arial";
+	resetAll();
+	pageTimer = setInterval(changePage,20); 
+}
+
+var beginCountTime = function(){
+	if ( isTeach === false && isTeaching === false  )
+		countTimer = setInterval(countTime,1000);
+}
+
+var resetAll = function(){
+	if ( nowPage === 'stage1'){
+		isTeach = true ;
+		isTeaching = true ;
+		amount = 1 ;
+		randomType = 0 ;
+		goalHeight = 60 ;
+		remainTime = 60 ;
+	} else if ( nowPage === 'stage2' ){
+		isTeach = true ;
+		isTeaching = false ;
+		amount = 1 ;
+		randomType = 1 ;
+		goalHeight = 60 ;
+		remainTime = 60 ;
+	} else if ( nowPage === 'stage3' ){
+		isTeach = true ;
+		isTeaching = false ;
+		amount = 2 ;
+		randomType = 1 ;
+		goalHeight = 40 ;
+		remainTime = 60 ;
+	} else if ( nowPage === 'stage4' ){
+		isTeach = true ;
+		isTeaching = false ;
+		amount = 1 ;
+		randomType = 1 ;
+		goalHeight = 80 ;
+		remainTime = 100 ;
+	} else if ( nowPage === 'stage5' ){
+		isTeach = true ;
+		isTeaching = false ;
+		amount = 2 ;
+		randomType = 1 ;
+		goalHeight = 60 ;
+		remainTime = 100 ;
+	}
+	if ( world !== undefined )
+		world.destroy();
 	world = Physics(function(world){
 		var viewportBounds = Physics.aabb(0, 0, viewWidth, viewHeight * 2);
 		Physics.util.ticker.on(function( time, dt ){
@@ -358,11 +485,11 @@ var init = function(){
 			]
 		);
 	});
-	resetAll(true);
-	pageTimer = setInterval(changePage,20); 
-}
-
-var resetAll = function(spin){
+	hookload = true ;
+	isWin = false ;
+	isGameOver = false ;
+	leftTower = [] , rightTower = [] ;
+	boxList = [] ;
 	nowHeight = 0 ;
 	nowLeftHeight = 0 ;
 	nowRightHeight = 0;
@@ -370,8 +497,7 @@ var resetAll = function(spin){
 	remainLeftHeight = 0 ;
 	remainRightHeight = 0 ;
 	hasFirstBox = false ;
-	offsetY = 0 ;
-	hook = createBox('rectangle',viewWidth / 2,50,0,0,"static",getImage("hook")) ;
+	hook = createBox('rectangle',300,50,0,0,"static",getImage("hook")) ;
 	hook.state.angular.pos = Math.PI / 2 ;
 	var type ;
 	if ( randomType === 0 )
@@ -391,23 +517,22 @@ var resetAll = function(spin){
 	world.add(hook);
 	world.add(hookBox);
 	FirstEnterPage = true ;
-	countTimer = setInterval(countTime,1000);
 }
 
 var initFirstBox = function(){
 	if ( hasFirstBox === true )
 		return ;
 	if ( amount === 1 ){
-		var box = createBox('rectangle',viewWidth / 2 + 50 ,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
+		var box = createBox('rectangle',viewWidth / 2 - 360 ,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
 		boxList.push(box) ;
 		hasFirstBox = true ;
 	} else if ( amount === 2 ){
-		var box = createBox('rectangle',420,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
+		var box = createBox('rectangle',250,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
 		leftMax = box ;
 		leftTower.push(box);
-		box = createBox('rectangle',680,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
+		box = createBox('rectangle',550,viewHeight - 50,boxType['base'].width,boxType['base'].height,"static",getImage("base")) ;
 		world.add(box);
 		rightMax = box ;
 		rightTower.push(box);
@@ -418,8 +543,9 @@ var initFirstBox = function(){
 var addFloor = function(){
 	if ( hasFirstBox === true )
 		return ;
-	var box = createBox('rectangle',0,viewHeight + 5 ,viewWidth * 3,10,"static",getImage("box1")) ;
+	var box = createBox('rectangle',-100,viewHeight + 5 ,viewWidth * 3,10,"static",getImage("box1")) ;
 	box.hide = true ;
+	box.label = 'floor' ;
 	world.add(box);
 	if ( amount === 1 )
 		boxList.push(box) ;
@@ -440,13 +566,10 @@ var moveUp = function(){
 				boxList[i].state.pos.y += 2  ;
 			}
 			for ( var i = 0 ; i < boxList.length ; i ++ ){
-				var h = boxList[i].geometry.height ;
-				if ( h === undefined )
-					h = 75 ;
+				var h = getH(boxList[i]) ;
 				if (  viewHeight - boxList[i].state.pos.y > h  )
 					boxList[i].treatment = 'dynamic' ;
 			}
-			offsetY += 2 ;
 		} 
 	} else if ( amount === 2 ){
 		upperBound = 550 ;
@@ -467,20 +590,15 @@ var moveUp = function(){
 				rightTower[i].state.pos.y += 2  ;
 			}
 			for ( var i = 0 ; i < leftTower.length ; i ++ ){
-				var h = leftTower[i].geometry.height ;
-				if ( h === undefined )
-					h = 75 ;
+				var h = getH(leftTower[i]) ;
 				if (  viewHeight - leftTower[i].state.pos.y > h  )
 					leftTower[i].treatment = 'dynamic' ;
 			}
 			for ( var i = 0 ; i < rightTower.length ; i ++ ){
-				var h = rightTower[i].geometry.height ;
-				if ( h === undefined )
-					h = 75 ;
+				var h = getH(rightTower[i]) ;
 				if (  viewHeight - rightTower[i].state.pos.y > h  )
 					rightTower[i].treatment = 'dynamic' ;
 			}
-			offsetY += 2 ;
 		} 
 	}
 }
@@ -488,16 +606,12 @@ var moveUp = function(){
 var drawHook = function(spin){
 	if ( hookload === true ){
 		if ( spin === false ){
-			var h = hookBox.geometry.height ;
-			if ( hookBox.geometry.height === undefined )
-				h = 75 ;
+			var h = getH(hookBox) ;
 			hookBox.state.pos.y = h + hook.state.pos.y ;
 			hookBox.state.pos.x = hook.state.pos.x ;
 		} else {
-			var h = hookBox.geometry.height ;
-			if ( hookBox.geometry.height === undefined )
-				h = 75 ;
-			hookBox.state.pos.y = (h) * Math.cos(hookBox.state.angular.pos) + h / 2   ;
+			var h = getH(hookBox) 
+			hookBox.state.pos.y = (h) * Math.cos(hookBox.state.angular.pos) + h * 2 / 5   ;
 			hookBox.state.pos.x = (-1) * (h) * Math.sin(hookBox.state.angular.pos)  + hook.state.pos.x ;
 			hookBox.state.angular.pos = hook.state.angular.pos - Math.PI / 2 ;
 		}
@@ -509,21 +623,38 @@ var drawHook = function(spin){
 var moveHook = function(spin){
 	if ( spin === false ){
 		hook.state.pos.x += hookMoveSpeed ;
-		if ( hook.state.pos.x >= viewWidth - 200 || hook.state.pos.x <= 300 )
+		if ( hook.state.pos.x >= 630 || hook.state.pos.x <= 150 )
 			hookMoveSpeed *= -1 ;
 	} else {
 		hook.state.pos.x += hookMoveSpeed ;
 		hook.state.angular.pos += hookAngleSpeed ;
-		if ( hook.state.pos.x >= viewWidth - 200 || hook.state.pos.x <= 300 )
+		if ( hook.state.pos.x >= 630  || hook.state.pos.x <= 150 )
 			hookMoveSpeed *= -1 ;
 		if ( hook.state.angular.pos >= 2 || hook.state.angular.pos <= 1 )
 			hookAngleSpeed *= -1 ;
 	}
 }
 
+var toWin = function(){
+	isWin = true ;
+	ctx.drawImage(getImage('win'),210,100,419,304) ;
+	if ( mouseOver === 'next' )
+		ctx.drawImage(getImage('next2'),270,420,252,81) ;
+	else 
+		ctx.drawImage(getImage('next'),270,420,252,81) ;
+	clearTimeout(countTimer);
+	clearTimeout(addHeightTimer);
+	clearTimeout(addLeftHeightTimer);
+	clearTimeout(addRightHeightTimer);
+}
+
 var toGameOver = function(){
 	isGameOver = true ;
-	ctx.fillText("GAMEOVER",100,150,1000,100) ;
+	ctx.drawImage(getImage('fail'),210,200,364,117) ;
+	if ( mouseOver === 'again' )
+		ctx.drawImage(getImage('again2'),270,360,252,81) ;
+	else 
+		ctx.drawImage(getImage('again'),270,360,252,81) ;
 	clearTimeout(countTimer);
 	clearTimeout(addHeightTimer);
 	clearTimeout(addLeftHeightTimer);
@@ -538,6 +669,8 @@ var addHeight = function(){
 		} else {
 			clearTimeout(addHeightTimer) ;
 		}
+		if ( nowHeight >= goalHeight )
+			isWin = true ;
 	}
 }
 
@@ -549,6 +682,8 @@ var addLeftHeight = function(){
 		} else {
 			clearTimeout(addLeftHeightTimer) ;
 		}
+		if ( nowLeftHeight >= goalHeight && nowRightHeight >= goalHeight )
+			isWin = true ;
 	}
 }
 
@@ -560,13 +695,20 @@ var addRightHeight = function(){
 		} else {
 			clearTimeout(addRightHeightTimer) ;
 		}
+		if ( nowLeftHeight >= goalHeight && nowRightHeight >= goalHeight )
+			isWin = true ;
 	}
 }
 
-var boxTouch = function(){
-	var h = hookBox.geometry.height ;
-	if ( hookBox.geometry.height === undefined )
+var getH = function(source){
+	var h = source.geometry.height ;
+	if ( source.geometry.height === undefined )
 		h = 75 ;
+	return h ;
+}
+
+var boxTouch = function(){
+	var h = getH(hookBox);
 	if ( amount === 1 && isBoxTouch === false ){
 		if ( boxList.length <= 2 )
 			return ;
@@ -575,7 +717,7 @@ var boxTouch = function(){
 			for ( var i = 2 ; i < boxList.length ; i ++ )
 				total += boxList[i].size ;
 			remainHeight = total - nowHeight ;
-			addHeightTimer = setInterval(addHeight,20) ;
+			addHeightTimer = setInterval(addHeight,200) ;
 			isBoxTouch = true ;
 		}
 	} else if ( amount === 2 ){
@@ -584,14 +726,14 @@ var boxTouch = function(){
 			for ( var i = 2 ; i < leftTower.length ; i ++ )
 				totalLeft += leftTower[i].size ;
 			remainLeftHeight = totalLeft - nowLeftHeight ;
-			addLeftHeightTimer = setInterval(addLeftHeight,20) ;
+			addLeftHeightTimer = setInterval(addLeftHeight,200) ;
 		} 
-		else if ( rightTower.length > 2 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + h && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
+		if ( rightTower.length > 2 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + h && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
 			var totalRight = 0  ;
 			for ( var i = 2 ; i < rightTower.length ; i ++ )
 				totalRight += rightTower[i].size ;
 			remainRightHeight = totalRight - nowRightHeight ;
-			addRightHeightTimer = setInterval(addRightHeight,20) ;
+			addRightHeightTimer = setInterval(addRightHeight,200) ;
 		}
 	}
 }
@@ -601,10 +743,8 @@ var checkBox = function(){
 		if ( boxList.length <= 2 )
 			return ;
 		for ( var i = 2 ; i < boxList.length ; i ++ ){
-			var h = boxList[i].geometry.height ;
-			if ( h === undefined )
-				h = 75 ;
-			if ( boxList[i].state.pos.y >= viewHeight - h && boxList[i].treatment !== 'static' )  {
+			var h = getH(boxList[i]);
+			if ( boxList[i].state.pos.y >= viewHeight - h / 2 && boxList[i].treatment !== 'static' )  {
 				toGameOver();
 				return ;
 			}
@@ -612,30 +752,26 @@ var checkBox = function(){
 	} else if ( amount === 2 ){
 		if ( leftTower.length <= 2 && rightTower.length <= 2  )
 			return ;
-		for ( var i = 2 ; i < leftTower.length ; i ++ ){
-			var h = leftTower[i].geometry.height ;
-			if ( h === undefined )
-				h = 75 ;
-			if ( leftTower[i].state.pos.y  >= viewHeight - h / 2  && leftTower[i].treatment !== 'static' )  {
+		if ( leftTower.length > rightTower.length + 2 || leftTower.length + 2 < rightTower.length ){
+			toGameOver();
+			return ;
+		}
+		for ( var i = 2 ; i < leftTower.length ; i ++ ){			
+			var h = getH(leftTower[i]) ;
+			if ( leftTower[i].state.pos.y  >= viewHeight - h / 2   && leftTower[i].treatment !== 'static' )  {
 				toGameOver();
 				return ;
 			}
 		}
 		for ( var i = 2 ; i < rightTower.length ; i ++ ){
-			var h = rightTower[i].geometry.height ;
-			if ( h === undefined )
-				h = 75 ;
-			if ( rightTower[i].state.pos.y  >= viewHeight - h / 2  && rightTower[i].treatment !== 'static' )  {
+			var h = getH(rightTower[i]) ;
+			if ( rightTower[i].state.pos.y  >= viewHeight - h / 2   && rightTower[i].treatment !== 'static' )  {
 				toGameOver();
 				return ;
 			}
 		}
-		var h = leftMax.geometry.height ;
-		if ( h === undefined )
-			h = 75 ;
-		var h2 = rightMax.geometry.height ;
-		if ( h2 === undefined )
-			h2 = 75 ;
+		var h = getH(leftMax) ;
+		var h2 = getH(rightMax) ;
 		if ( leftMax.state.pos.y  >= viewHeight +  h  ||  rightMax.state.pos.y >= viewHeight + h2  ){
 			toGameOver() ;
 		}
@@ -643,9 +779,7 @@ var checkBox = function(){
 }
 
 var reloadHook = function(){
-	var h = hookBox.geometry.height ;
-	if ( hookBox.geometry.height === undefined )
-		h = 75 ;
+	var h = getH(hookBox) ;
 	if ( detectPoly(nextBox) === false )
 		hookBox = createBox('rectangle',hook.state.pos.x,hook.state.pos.y ,boxType[nextBox].width,boxType[nextBox].height,"static",getImage(nextBox)) ;
 	else {
@@ -682,12 +816,22 @@ var fixBoxCollision = function(){
 		var coll;
 		for (var i = 0, l = data.collisions.length; i < l; i++){
 			coll = data.collisions[ i ];
+			if ( coll.bodyA.label === 'floor' || coll.bodyB.label === 'floor' ){
+				if ( isGameOver === false ){
+					toGameOver();
+				}
+				return ;
+			}
 			if (  coll.bodyA.uid > coll.bodyB.uid )
 				coll.bodyA.state.vel.y = 0 ;
 			else 
 				coll.bodyB.state.vel.y = 0 ;
 		}
 	});
+}
+
+var initMouseMove = function(e){
+	document.body.style.cursor = "default" ;
 }
 
 var setCanvas = function(){
@@ -728,73 +872,125 @@ var addBox = function(e){
 	}
 }
 
-var gameOverMouseOver = function(e){
-	var tempX , tempY ;
-	if (IE) { 
-		tempX = event.clientX + document.body.scrollLeft ;
-		tempY = event.clientY + document.body.scrollTop;
-	} else {  
-		tempX = e.pageX ;
-		tempY = e.pageY ;
-	}	
+var toNext = function(){
+	if ( nowPage === 'stage1' )
+		nowPage = 'stage2' ;
+	else if ( nowPage === 'stage2' )
+		nowPage = 'stage3' ;
+	else if ( nowPage === 'stage3' )
+		nowPage = 'stage4' ;
+	else if ( nowPage === 'stage4' )
+		nowPage = 'stage5' ;
+	else if ( nowPage === 'stage5' ){
+		;
+	}
+}
+
+var showTeach = function(){
+	if ( nowPage === 'stage2'){
+		ctx.drawImage(getImage('teach2'),172,200,431,149) ;
+		if ( mouseOver === 'start')
+			ctx.drawImage(getImage('start2'),315,400,146,64) ;
+		else 
+		 ctx.drawImage(getImage('start'),315,400,146,64) ;
+	} else if ( nowPage === 'stage3' ){
+		ctx.drawImage(getImage('teach3'),172,200,431,149) ;
+		if ( mouseOver === 'start')
+			ctx.drawImage(getImage('start2'),315,400,146,64) ;
+		else 
+		 ctx.drawImage(getImage('start'),315,400,146,64) ;
+	} else if ( nowPage === 'stage4' ){
+		ctx.drawImage(getImage('teach4'),172,200,431,149) ;
+		if ( mouseOver === 'start')
+			ctx.drawImage(getImage('start2'),315,400,146,64) ;
+		else 
+		 ctx.drawImage(getImage('start'),315,400,146,64) ;
+	} else if ( nowPage === 'stage5' ){
+		ctx.drawImage(getImage('teach5'),172,200,431,149) ;
+		if ( mouseOver === 'start')
+			ctx.drawImage(getImage('start2'),315,400,146,64) ;
+		else 
+		 ctx.drawImage(getImage('start'),315,400,146,64) ;
+	}
+}
+
+var gameWinMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
 	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
 	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
-	var ratio = 1285 / 750 ;
-	var ratio2 = offsetX / offsetY ;
-	var w , h ;
-	if ( ratio > ratio2 ){
-		h = offsetX / ratio ;
-		w = offsetX ;
-	} else {
-		w = offsetY * ratio ;
-		h = offsetY ;
-	}
-	if ( Math.abs( (tempX - 200 * w / 1285 ) - ((offsetX - w) / 2)  )  <=  100 * w / 1285 )  {
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 447 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780 ) {
 		document.body.style.cursor = "pointer" ;
+		mouseOver = 'next' ;
 	} else {
 		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var gameWinMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 447 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780 ) {
+		toNext();
+		mouseOver = 'none' ;
+		resetAll();
+	} 
+}
+
+var gameOverMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  41 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'again' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
 	}
 }
 
 var gameOverMouseClick = function(e){
-	var tempX , tempY ;
-	if (IE) { 
-		tempX = event.clientX + document.body.scrollLeft ;
-		tempY = event.clientY + document.body.scrollTop;
-	} else {  
-		tempX = e.pageX ;
-		tempY = e.pageY ;
-	}	
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;	
 	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
 	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
-	var ratioX = 1285 / offsetX ;
-	var ratioY = 750 / offsetY ;
-	var ratio = 1285 / 750 ;
-	var ratio2 = offsetX / offsetY ;
-	var w , h ;
-	if ( ratio > ratio2 ){
-		h = offsetX / ratio ;
-		w = offsetX ;
-	} else {
-		w = offsetY * ratio ;
-		h = offsetY ;
-	}
-
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  41 * h / 780	) {
+		isGameOver = false ;
+		mouseOver = 'none' ;
+		resetAll();
+	} 
 }
 
 var drawBackGroundRight = function(){
 	if ( amount === 1 )
-		ctx.drawImage(getImage('game_bg_2'),c.width/2-940/2+768,0,172,750) ;
+		ctx.drawImage(getImage('game_bg_2'),c.width/2-940/2+768,0,172,780) ;
 	else {
-		ctx.drawImage(getImage('game_bg2_2'),c.width/2-940/2+768,0,172,750) ;
+		ctx.drawImage(getImage('game_bg2_2'),c.width/2-940/2+768,0,172,780) ;
 	}
 }
 
 var drawBackGroundLeft = function(){
 	if ( amount === 1 )
-		ctx.drawImage(getImage('game_bg_1'),c.width/2-940/2,0,768,750) ;
+		ctx.drawImage(getImage('game_bg_1'),c.width/2-940/2,0,768,780) ;
 	else {
-		ctx.drawImage(getImage('game_bg2_1'),c.width/2-940/2,0,768,750) ;
+		ctx.drawImage(getImage('game_bg2_1'),c.width/2-940/2,0,768,780) ;
 	}
 }
 
@@ -802,7 +998,7 @@ var stageAllSet = function(){
 	if ( FirstEnterPage === true ){
 		randomBox();
 	}
-	setCanvas();
+	//setCanvas();
 	drawBackGroundLeft();
 	addFloor();
 	drawBox();
@@ -820,28 +1016,174 @@ var stageAllSet = function(){
 
 // stage 1 
 
-var Stage1 = function(){
-	amount = 1 ;
-	stageAllSet();
-	initFirstBox();
-	drawHook(false);
-	moveHook(false);
-	boxTouch();
-	if ( isGameOver === true ){
-		document.onclick = gameOverMouseClick ;
-		document.onmousemove = gameOverMouseOver ;
-		toGameOver();
+var toTeachingMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 872 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		 Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'start' ;
+	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
 	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var toTeachingMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 872 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		 Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'none' ;
+		isTeaching = false ;
+		beginCountTime();
+	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var toTeachMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'teach' ;
+	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var toTeachMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		toTeaching();
+	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} 
+}
+
+var toTeach = function(){
+	if ( mouseOver === 'teach' ){
+		ctx.drawImage(getImage('teach_button2'),270,360,252,81) ;
+		ctx.drawImage(getImage('return'),100,690,146,64) ;
+	}
+	else if ( mouseOver === 'return' ){
+		ctx.drawImage(getImage('return2'),100,690,146,64) ;
+		ctx.drawImage(getImage('teach_button'),270,360,252,81) ;
+	} else {
+		ctx.drawImage(getImage('teach_button'),270,360,252,81) ;
+		ctx.drawImage(getImage('return'),100,690,146,64) ;
+	} 
+}
+
+var toTeaching = function(){
+	isTeach = false ;
+	isTeaching = true ;
+	ctx.drawImage(getImage('teach'),19,0,940,780) ;
+	ctx.drawImage(getImage('return'),100,690,146,64) ;
+	ctx.drawImage(getImage('start'),800,690,146,64) ;
+	if ( mouseOver === 'start' ){
+		ctx.drawImage(getImage('start2'),800,690,146,64) 
+	} else if ( mouseOver === 'return' ){
+		ctx.drawImage(getImage('return2'),100,690,146,64) ;
+	}
+}
+
+var toGame = function(){
+	checkBox();
+	moveUp();
+}
+
+var toFrame = function(){
+	if ( isGameOver === true ){
+		setMouseEvent(gameOverMouseOver,gameOverMouseClick);
+		toGameOver();
+	} else if ( isWin === true ){
+		setMouseEvent(gameWinMouseOver,gameWinMouseClick);
+		toWin();
+	} else {
+		setMouseEvent(initMouseMove,addBox);
+		/*
+		setMouseEvent(initMouseMove,addBox);
 		if ( FirstEnterPage === true ){
 			if ('addEventListener' in document) {
 				document.addEventListener('DOMContentLoaded', function() {
 					FastClick.attach(document.body);
 				}, false);
 			}
-			document.onclick = addBox ;
-		}
-		checkBox();
-		moveUp();
+		}*/
+		toGame();
+	}
+}
+
+var Stage1 = function(){
+	stageAllSet();
+	initFirstBox();
+	drawHook(false);
+	moveHook(false);
+	boxTouch();
+	if ( isTeach === true ){
+		setMouseEvent(toTeachMouseOver,toTeachMouseClick);
+		toTeach();
+	} else if ( isTeaching === true ){
+		setMouseEvent(toTeachingMouseOver,toTeachingMouseClick);
+		toTeaching() ;
+	} else {
+		toFrame();
+	}
+	FirstEnterPage = false ;
+}
+
+// stage 2 
+
+var Stage2 = function(){
+	stageAllSet();
+	initFirstBox();
+	drawHook(false);
+	moveHook(false);
+	boxTouch();
+	if ( isTeach === true ){
+		setMouseEvent(showTeachMouseOver,showTeachMouseClick);
+		showTeach();
+	} else {
+		toFrame();
 	}
 	FirstEnterPage = false ;
 }
@@ -849,56 +1191,52 @@ var Stage1 = function(){
 // stage3
 
 var Stage3 = function(){
-	amount = 2 ;
 	stageAllSet();
 	initFirstBox();
 	drawHook(false);
 	moveHook(false);
 	boxTouch();
-	if ( isGameOver === true ){
-		document.onclick = gameOverMouseClick ;
-		document.onmousemove = gameOverMouseOver ;
-		toGameOver();
+	if ( isTeach === true ){
+		setMouseEvent(showTeachMouseOver,showTeachMouseClick);
+		showTeach();
 	} else {
-		if ( FirstEnterPage === true ){
-			if ('addEventListener' in document) {
-				document.addEventListener('DOMContentLoaded', function() {
-					FastClick.attach(document.body);
-				}, false);
-			}
-			document.onclick = addBox ;
-		}
-		checkBox();
-		moveUp();
+		toFrame();
 	}
+	fixLeftAndRight() ;
 	FirstEnterPage = false ;
 }
 
 // stage4
 var Stage4 = function(){
-	amount = 1 ;
 	stageAllSet();
 	initFirstBox();
 	drawHook(true);
 	moveHook(true);
 	boxTouch();
-	if ( isGameOver === true ){
-		document.onclick = gameOverMouseClick ;
-		document.onmousemove = gameOverMouseOver ;
-		toGameOver();
+	if ( isTeach === true ){
+		setMouseEvent(showTeachMouseOver,showTeachMouseClick);
+		showTeach();
 	} else {
-		if ( FirstEnterPage === true ){
-			if ('addEventListener' in document) {
-				document.addEventListener('DOMContentLoaded', function() {
-					FastClick.attach(document.body);
-				}, false);
-			}
-			document.onclick = addBox ;
-		}
-		checkBox();
-		moveUp();
+		toFrame();
 	}
 	FirstEnterPage = false ;
+}
+
+// stage5
+var Stage5 = function(){
+	stageAllSet();
+	initFirstBox();
+	drawHook(true);
+	moveHook(true);
+	boxTouch();
+	if ( isTeach === true ){
+		setMouseEvent(showTeachMouseOver,showTeachMouseClick);
+		showTeach();
+	} else {
+		toFrame();
+	}
+	FirstEnterPage = false ;
+	fixLeftAndRight() ;
 }
 
 
@@ -906,13 +1244,13 @@ var changePage = function(){
 	if ( nowPage === 'stage1' ){
 		Stage1();
 	} else if ( nowPage === 'stage2' ){
-		//Stage2();
+		Stage2();
 	} else if ( nowPage === 'stage3' ){
 		Stage3();
 	} else if ( nowPage === 'stage4' ){
 		Stage4();
 	} else if ( nowPage === 'stage5' ){
-		//Stage5();
+		Stage5();
 	}
 	
 }
