@@ -1,4 +1,25 @@
 var c ;
+
+window.requestAnimFrame = function(){
+    return (
+        window.requestAnimationFrame       || 
+        window.webkitRequestAnimationFrame || 
+        window.mozRequestAnimationFrame    || 
+        window.oRequestAnimationFrame      || 
+        window.msRequestAnimationFrame     || 
+        function(/* function */ callback){
+            window.setTimeout(callback, 1000 / 60);
+        }
+    );
+}();
+
+
+document.getElementById("bg").src = "sound/background.mp3" ;
+document.getElementById("fail").src = "sound/fail.mp3" ;
+document.getElementById("win").src = "sound/win.mp3" ;
+document.getElementById("box").src = "sound/box.mp3" ;
+document.getElementById("button").src = "sound/button.mp3" ;
+
 var imageList = ["hook","hook2","box1","box2","game_bg_1","game_bg_2",'game_bg2_1','game_bg2_2','0','1','2','3','4','5','6','7','8','9',
 				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2',
 				  "box_small","box_small2","box_small3","box_mid","box_mid2","base","box_big","box_big2","box_super","box_super2","box_other",
@@ -56,6 +77,11 @@ var isShowConfirm = false ;
 var rankSite ;
 var inputBox = [] ;
 var total = 0 ;
+var buttonSound = false ;
+var winSound = false ;
+var failSound = false ;
+var boxSound = false ;
+
 
 var lastBox = {
 	x : 0 ,
@@ -133,7 +159,12 @@ var showTeachMouseOver = function(e){
 		 Math.abs( (tempY - 418 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780 ) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'start' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -211,6 +242,7 @@ var showTag = function(){
 		ctx.drawImage(getImage('tag2'),22,712-(738-222)*nowLeftHeight/goalHeight+43,35,(738-222)*nowLeftHeight/goalHeight) ;
 		ctx.drawImage(getImage('tag3_2'),22,755,35,19) ;
 	}
+	
 }
 
 var showNowTag = function(){
@@ -300,10 +332,12 @@ var showGoalTag = function(){
 var showGoalHeight = function(){
 	if ( amount === 1 ){
 		var base = 855 ; 
+		ctx.font = "30px Arial" ;
 		ctx.fillStyle = "#C5453E" ;
 		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,220,300,50) ;
 	} else if ( amount === 2 ){
 		var base = 855 ; 
+		ctx.font = "30px Arial" ;
 		ctx.fillStyle = "#C5453E" ;
 		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,187,300,50) ;
 		ctx.fillText(goalHeight+' m',base-goalHeight.toString().length*10,365,300,50) ;
@@ -313,10 +347,12 @@ var showGoalHeight = function(){
 var showNowHeight = function(){
 	if ( amount === 1 ){
 		var base = 855 ; 
+		ctx.font = "30px Arial" ;
 		ctx.fillStyle = "#28231E" ;
 		ctx.fillText(nowHeight+' m',base-nowHeight.toString().length*10,320,300,50) ;
 	} else if ( amount === 2 ){
 		var base = 855 ; 
+		ctx.font = "30px Arial" ;
 		ctx.fillStyle = "#28231E" ;
 		ctx.fillText(nowLeftHeight+' m',base-nowLeftHeight.toString().length*10,260,300,50) ;
 		ctx.fillText(nowRightHeight+' m',base-nowRightHeight.toString().length*10,438,300,50) ;
@@ -444,6 +480,7 @@ var isFirst = function(){
 }
 
 var init = function(){
+	document.getElementById('bg').play();
 	isFirst();
 	makeAllImage();
 	makeBoxType();
@@ -459,7 +496,7 @@ var init = function(){
 	ctx = c.getContext("2d");
 	ctx.font="30px Arial";
 	resetAll();
-	pageTimer = setInterval(changePage,20); 
+	changePage();
 }
 
 var beginCountTime = function(){
@@ -468,6 +505,10 @@ var beginCountTime = function(){
 }
 
 var resetAll = function(){
+	ctx.font="30px Arial";
+	boxSound = false ;
+	winSound = false ;
+	failSound = false ;
 	isFirst();
 	if ( nowPage === 'stage1'){
 		isTeach = true ;
@@ -529,6 +570,33 @@ var resetAll = function(){
 				Physics.behavior('sweep-prune')
 			]
 		);
+	});
+	world.on('collisions:detected', function( data ){
+		var coll;
+		for (var i = 0 , l = data.collisions.length ; i < l; i++){
+			coll = data.collisions[ i ];
+			var uidA = coll.bodyA.uid , uidB = coll.bodyB.uid ;
+			if ( coll.bodyA.label === 'floor' || coll.bodyB.label === 'floor' ){
+				if ( isGameOver === false ){
+					toGameOver();
+				}
+				return ;
+			}
+			if (  uidA > uidB ){
+				coll.bodyA.state.vel.y = 0 ;
+				if ( coll.bodyA.uidB === undefined ){
+					document.getElementById('box').play();
+					coll.bodyA.uidB = true ;
+				}
+			}
+			else {
+				coll.bodyB.state.vel.y = 0 ;
+				if ( coll.bodyB.uidA === undefined ){
+					document.getElementById('box').play();
+					coll.bodyB.uidA = true ;
+				}
+			}
+		}
 	});
 	isShowConfirm = false ;
 	hookload = true ;
@@ -736,6 +804,9 @@ var toRank = function(){
 }
 
 var toWin = function(){
+	if ( winSound === false )
+		document.getElementById("win").play();
+	winSound = true ;
 	isWin = true ;
 	ctx.drawImage(getImage('win'),210,100,419,304) ;
 	if ( mouseOver === 'next' )
@@ -750,6 +821,9 @@ var toWin = function(){
 }
 
 var toGameOver = function(){
+	if ( failSound === false )
+		document.getElementById("fail").play();
+	failSound = true ;
 	isGameOver = true ;
 	ctx.drawImage(getImage('fail'),210,200,364,117) ;
 	if ( mouseOver === 'again' )
@@ -913,22 +987,7 @@ var drawBox = function(){
 }
 
 var fixBoxCollision = function(){
-	world.on('collisions:detected', function( data ){
-		var coll;
-		for (var i = 0, l = data.collisions.length; i < l; i++){
-			coll = data.collisions[ i ];
-			if ( coll.bodyA.label === 'floor' || coll.bodyB.label === 'floor' ){
-				if ( isGameOver === false ){
-					toGameOver();
-				}
-				return ;
-			}
-			if (  coll.bodyA.uid > coll.bodyB.uid )
-				coll.bodyA.state.vel.y = 0 ;
-			else 
-				coll.bodyB.state.vel.y = 0 ;
-		}
-	});
+
 }
 
 var initMouseMove = function(e){
@@ -1026,7 +1085,12 @@ var gameWinMouseOver = function(e){
 		 Math.abs( (tempY - 447 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780 ) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'next' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1063,7 +1127,12 @@ var gameOverMouseOver = function(e){
 		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  41 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'again' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1131,11 +1200,20 @@ var toTeachingMouseOver = function(e){
 		 Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'start' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'return' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1172,11 +1250,20 @@ var toTeachMouseOver = function(e){
 		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'teach' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'return' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1265,11 +1352,20 @@ var rankMouseOver = function(e){
 		Math.abs( (tempY - 408 * h / 780 ) - ((offsetY - h) / 2)  )  <=  14 * h / 780	){
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'confirm' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 470 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		Math.abs( (tempY - 630 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'return' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1305,17 +1401,30 @@ var indexMouseOver = function(e){
 		 Math.abs( (tempY - 310 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'new' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
 		 Math.abs( (tempY - 403 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
 		if ( isContinue === true ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'continue' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
 		 Math.abs( (tempY - 503 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'rank' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1355,12 +1464,21 @@ var newGameMouseOver = function(e){
 		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'return' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 600 * w / 978 ) - ((offsetX - w) / 2)  )  <=  84 * w / 978 &&
 		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'continue' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	}  else {
 		document.body.style.cursor = "default" ;
+		buttonSound = false ;
 		mouseOver = 'none' ;
 	}
 }
@@ -1396,37 +1514,62 @@ var continueGameMouseOver = function(e){
 		 Math.abs( (tempY - 668 * h / 780 ) - ((offsetY - h) / 2)  )  <=  30 * h / 780	) {
 		document.body.style.cursor = "pointer" ;
 		mouseOver = 'return' ;
+		if ( buttonSound === false ){
+			document.getElementById('button').play();
+			buttonSound = true ;
+		}
 	} else if ( Math.abs( (tempX - 224 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
 		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
 		if ( Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'stage1' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else if ( Math.abs( (tempX - 472 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
 		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
 		if ( Cookies.get('stage2') !== null && Cookies.get('stage2') !== "" && Cookies.get('stage2') !== undefined ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'stage2' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else if ( Math.abs( (tempX - 730 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
 		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
 		if ( Cookies.get('stage3') !== null && Cookies.get('stage3') !== "" && Cookies.get('stage3') !== undefined ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'stage3' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else if ( Math.abs( (tempX - 318 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
 		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
 		if ( Cookies.get('stage4') !== null && Cookies.get('stage4') !== "" && Cookies.get('stage4') !== undefined ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'stage4' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else if ( Math.abs( (tempX - 632 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
 		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
 		if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined ){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'stage5' ;
+			if ( buttonSound === false ){
+				document.getElementById('button').play();
+				buttonSound = true ;
+			}
 		}
 	} else {
+		buttonSound = false ;
 		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 	}
@@ -1688,7 +1831,7 @@ var changePage = function(){
 	} else if ( nowPage === 'stage5' ){
 		Stage5();
 	}
-	
+	requestAnimationFrame(changePage);
 }
 
 window.addEventListener('load', function() {
