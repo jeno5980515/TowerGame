@@ -3,7 +3,9 @@ var imageList = ["hook","hook2","box1","box2","game_bg_1","game_bg_2",'game_bg2_
 				  '02','12','22','32','42','52','62','72','82','92','M','tag','tag2','tag3','tag_2','tag3_2','nowtag','goaltag','nowtag2','goaltag2',
 				  "box_small","box_small2","box_small3","box_mid","box_mid2","base","box_big","box_big2","box_super","box_super2","box_other",
 				  "box_other2","box_other3","box_other4",'fail','again','again2','win','next','next2','return','return2','teach','teach_button','teach_button2',
-				  'start' , 'start2','teach2','teach3','teach4','teach5'] ;
+				  'start' , 'start2','teach2','teach3','teach4','teach5','new','new2','pig','pig2','continue','continue2','rank','rank2','index',
+				  'shovel','shovel2','teach_bg','new_return','new_return2','new_continue','new_continue2','rank_bg','confirm','confirm2','input',
+				  'lv_bg','lv1','lv1_2','lv1_3','lv2','lv2_2','lv2_3','lv3','lv3_2','lv3_3','lv4','lv4_2','lv4_3','lv5','lv5_2','lv5_3'] ;
 var simpleBoxList = ["box_big","box_big2","box_super","box_super2"] ;
 var allBoxList = ["box_small","box_small2","box_small3","box_mid","box_mid2","box_big","box_big2","box_super","box_super2",
 				   "box_other","box_other2","box_other3","box_other4"] ;
@@ -13,7 +15,7 @@ var imageMap = {} ;
 var resulotion ;
 var width , heigth ;
 var ctx ;
-var nowPage = 'stage1' ;
+var nowPage = 'index' ;
 var boxList = [] ;
 var hasFirstBox = false ;
 var isGameOver = false ;
@@ -49,6 +51,11 @@ var mouseOver = 'none' ;
 var spin = true ;
 var isTeach = false ;
 var isTeaching = false ;
+var isContinue = false ;
+var isShowConfirm = false ;
+var rankSite ;
+var inputBox = [] ;
+var total = 0 ;
 
 var lastBox = {
 	x : 0 ,
@@ -61,6 +68,28 @@ var pageTimer ;
 var world;
 
 //set all 
+
+var getNextPage = function(){
+	if ( nowPage === 'stage1' )
+		return 'stage2' ;
+	if ( nowPage === 'stage2' )
+		return 'stage3' ;
+	if ( nowPage === 'stage3' )
+		return 'stage4' ;
+	if ( nowPage === 'stage4' )
+		return 'stage5' ;
+}
+
+var saveData = function(){
+	var time = Cookies.get(nowPage);
+	if ( time === null || time === "" || time === undefined || parseInt(time) < remainTime ){
+		Cookies.set(nowPage,remainTime,{ expires: 36500 });
+	}
+	var nextTime = Cookies.get(getNextPage()) ;
+	if ( nextTime === null || nextTime === "" || nextTime === undefined ){
+		Cookies.set(getNextPage(),0,{ expires: 36500 });
+	}
+}
 
 var setMouseEvent = function(over,click){
 	document.onclick = click ;
@@ -400,7 +429,22 @@ var drawBody = function( body, view, ctx, offset ){
 	ctx.restore();
 }
 
+var isFirst = function(){
+	if ( Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined ){
+		isContinue = true ;
+	} else {
+		Cookies.set('theRank0',{name:'boss',score:99999}) ;
+		Cookies.set('theRank1',{name:'king',score:35}) ;
+		Cookies.set('theRank2',{name:'happycat',score:30}) ;
+		Cookies.set('theRank3',{name:'francis',score:25}) ;
+		Cookies.set('theRank4',{name:'Amy',score:20}) ;
+		Cookies.set('theRank5',{name:'123',score:15}) ;
+		Cookies.set('theRank6',{name:'handsome',score:10}) ;
+	}
+}
+
 var init = function(){
+	isFirst();
 	makeAllImage();
 	makeBoxType();
 	SlEEPBAG.canvasAutoResizer.load(function(self){
@@ -424,40 +468,41 @@ var beginCountTime = function(){
 }
 
 var resetAll = function(){
+	isFirst();
 	if ( nowPage === 'stage1'){
 		isTeach = true ;
 		isTeaching = true ;
 		amount = 1 ;
 		randomType = 0 ;
-		goalHeight = 60 ;
+		goalHeight = 60 ; //60
 		remainTime = 60 ;
 	} else if ( nowPage === 'stage2' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 1 ;
 		randomType = 1 ;
-		goalHeight = 60 ;
+		goalHeight = 60 ; //60
 		remainTime = 60 ;
 	} else if ( nowPage === 'stage3' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 2 ;
 		randomType = 1 ;
-		goalHeight = 40 ;
+		goalHeight = 40 ; //40
 		remainTime = 60 ;
 	} else if ( nowPage === 'stage4' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 1 ;
 		randomType = 1 ;
-		goalHeight = 80 ;
+		goalHeight = 80 ; //80
 		remainTime = 100 ;
 	} else if ( nowPage === 'stage5' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 2 ;
 		randomType = 1 ;
-		goalHeight = 60 ;
+		goalHeight = 60 ; //60
 		remainTime = 100 ;
 	}
 	if ( world !== undefined )
@@ -485,6 +530,7 @@ var resetAll = function(){
 			]
 		);
 	});
+	isShowConfirm = false ;
 	hookload = true ;
 	isWin = false ;
 	isGameOver = false ;
@@ -517,6 +563,10 @@ var resetAll = function(){
 	world.add(hook);
 	world.add(hookBox);
 	FirstEnterPage = true ;
+	clearTimeout(countTimer);
+	clearTimeout(addHeightTimer);
+	clearTimeout(addLeftHeightTimer);
+	clearTimeout(addRightHeightTimer);
 }
 
 var initFirstBox = function(){
@@ -635,6 +685,56 @@ var moveHook = function(spin){
 	}
 }
 
+var send = function(){
+	var name = "" ;
+	for ( var i = 0 ; i < inputBox.length ; i ++ )
+		name += inputBox[i] ;
+	for ( var i = 6 ; i >= rankSite ; i -- ){
+		Cookies.set("theRank"+i.toString(),Cookies.getJSON("theRank"+(i-1).toString())) ;
+	}
+	Cookies.set("theRank"+rankSite,{name:name,score:total}) ;
+	isShowConfirm = false ;
+}
+
+var showConfirm = function(){
+	ctx.drawImage(getImage('input'),310,400,360,45) ;
+	ctx.drawImage(getImage('confirm'),585,410,66,28) ;
+	if ( mouseOver === 'confirm' ){
+		ctx.drawImage(getImage('confirm2'),585,410,66,28) ;
+	}
+	document.onkeypress = function() {
+		var length = inputBox.length  ;
+		if ( event.keyCode == "8" && length > 0 ){
+			inputBox.splice(length-1, length); 
+		} else if ( event.keyCode == 13 ) {
+			send() ;
+		} else if ( length <= 8 ) {
+			var keyIn = String.fromCharCode(event.keyCode) ;
+			inputBox.push(keyIn) ;
+		}
+	}
+	document.onkeydown = function() {
+		var length = inputBox.length  ;
+		if ( event.keyCode == "8" && length > 0 ){
+			inputBox.splice(length-1, length); 
+		} 
+	}
+	for ( var i = 0 ; i < inputBox.length ; i ++ ){
+		ctx.fillText(inputBox[i],345+i*25,430,100,100) ;
+	}
+}
+
+var toRank = function(){
+	total = parseInt(Cookies.get('stage1')) + parseInt(Cookies.get('stage2')) + parseInt(Cookies.get('stage3')) + parseInt(Cookies.get('stage4')) + parseInt(Cookies.get('stage5')) ;
+	for ( var i = 0 ; i <= 5 ; i ++ ){
+		if ( parseInt(Cookies.getJSON('theRank'+i.toString()).score) >= total && total > parseInt(Cookies.getJSON('theRank'+((i+1).toString()) ).score) ){
+			isShowConfirm = true ;
+			rankSite = i + 1 ;
+			break ;
+		}
+	}
+}
+
 var toWin = function(){
 	isWin = true ;
 	ctx.drawImage(getImage('win'),210,100,419,304) ;
@@ -646,6 +746,7 @@ var toWin = function(){
 	clearTimeout(addHeightTimer);
 	clearTimeout(addLeftHeightTimer);
 	clearTimeout(addRightHeightTimer);
+	saveData();
 }
 
 var toGameOver = function(){
@@ -717,7 +818,7 @@ var boxTouch = function(){
 			for ( var i = 2 ; i < boxList.length ; i ++ )
 				total += boxList[i].size ;
 			remainHeight = total - nowHeight ;
-			addHeightTimer = setInterval(addHeight,200) ;
+			addHeightTimer = setInterval(addHeight,70) ;
 			isBoxTouch = true ;
 		}
 	} else if ( amount === 2 ){
@@ -726,14 +827,14 @@ var boxTouch = function(){
 			for ( var i = 2 ; i < leftTower.length ; i ++ )
 				totalLeft += leftTower[i].size ;
 			remainLeftHeight = totalLeft - nowLeftHeight ;
-			addLeftHeightTimer = setInterval(addLeftHeight,200) ;
+			addLeftHeightTimer = setInterval(addLeftHeight,70) ;
 		} 
 		if ( rightTower.length > 2 && rightTower[rightTower.length-1].state.pos.y >= hookBox.state.pos.y + h && rightTower[rightTower.length-1].state.vel.y === 0 && rightTower[rightTower.length-1].state.angular.vel === 0   ){
 			var totalRight = 0  ;
 			for ( var i = 2 ; i < rightTower.length ; i ++ )
 				totalRight += rightTower[i].size ;
 			remainRightHeight = totalRight - nowRightHeight ;
-			addRightHeightTimer = setInterval(addRightHeight,200) ;
+			addRightHeightTimer = setInterval(addRightHeight,70) ;
 		}
 	}
 }
@@ -940,9 +1041,14 @@ var gameWinMouseClick = function(e){
 	var w = ratio.w , h = ratio.h ;
 	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
 		 Math.abs( (tempY - 447 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780 ) {
-		toNext();
-		mouseOver = 'none' ;
-		resetAll();
+		if ( nowPage === 'stage5' ){
+			toRank();
+			nowPage = 'rank' ;
+		} else {
+			toNext();
+			mouseOver = 'none' ;
+			resetAll();
+		}
 	} 
 }
 
@@ -1014,8 +1120,6 @@ var stageAllSet = function(){
 	showBlock();
 }
 
-// stage 1 
-
 var toTeachingMouseOver = function(e){
 	var temp = getMouseSite(e);
 	var tempX = temp.x , tempY = temp.y ;
@@ -1046,18 +1150,15 @@ var toTeachingMouseClick = function(e){
 	var w = ratio.w , h = ratio.h ;
 	if ( Math.abs( (tempX - 872 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		 Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	) {
-		document.body.style.cursor = "pointer" ;
+		document.body.style.cursor = "default" ;
 		mouseOver = 'none' ;
 		isTeaching = false ;
 		beginCountTime();
 	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
-		document.body.style.cursor = "pointer" ;
-		mouseOver = 'return' ;
-	} else {
 		document.body.style.cursor = "default" ;
-		mouseOver = 'none' ;
-	}
+		nowPage = 'newGame' ;
+	} 
 }
 
 var toTeachMouseOver = function(e){
@@ -1090,12 +1191,12 @@ var toTeachMouseClick = function(e){
 	var w = ratio.w , h = ratio.h ;
 	if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
 		 Math.abs( (tempY - 386 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
-		document.body.style.cursor = "pointer" ;
+		document.body.style.cursor = "default" ;
 		toTeaching();
 	} else if ( Math.abs( (tempX - 175 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
-		document.body.style.cursor = "pointer" ;
-		mouseOver = 'return' ;
+		document.body.style.cursor = "default" ;
+		nowPage = 'newGame' ;
 	} 
 }
 
@@ -1153,6 +1254,333 @@ var toFrame = function(){
 	}
 }
 
+var rankMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( isShowConfirm === true  && Math.abs( (tempX - 612 * w / 978 ) - ((offsetX - w) / 2)  )  <=  33 * w / 978 &&
+		Math.abs( (tempY - 408 * h / 780 ) - ((offsetY - h) / 2)  )  <=  14 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'confirm' ;
+	} else if ( Math.abs( (tempX - 470 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 630 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+
+}
+
+var rankMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( isShowConfirm === true  && Math.abs( (tempX - 612 * w / 978 ) - ((offsetX - w) / 2)  )  <=  33 * w / 978 &&
+		Math.abs( (tempY - 408 * h / 780 ) - ((offsetY - h) / 2)  )  <=  14 * h / 780	){
+		document.body.style.cursor = "default" ;
+		send();
+	} else if ( Math.abs( (tempX - 470 * w / 978 ) - ((offsetX - w) / 2)  )  <=  72 * w / 978 &&
+		Math.abs( (tempY - 630 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
+		document.body.style.cursor = "default" ;
+		nowPage = 'index' ;
+	} 
+}
+
+var indexMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 310 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'new' ;
+	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 403 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		if ( isContinue === true ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'continue' ;
+		}
+	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 503 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'rank' ;
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var indexMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 310 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		nowPage = 'newGame' ;
+	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 403 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		if ( isContinue === true ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'continueGame' ;
+		}
+	} else if ( Math.abs( (tempX - 474 * w / 978 ) - ((offsetX - w) / 2)  )  <=  126 * w / 978 &&
+		 Math.abs( (tempY - 503 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
+		document.body.style.cursor = "default" ;
+		nowPage = 'rank' ;
+	} 
+}
+
+var newGameMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 365 * w / 978 ) - ((offsetX - w) / 2)  )  <=  84 * w / 978 &&
+		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} else if ( Math.abs( (tempX - 600 * w / 978 ) - ((offsetX - w) / 2)  )  <=  84 * w / 978 &&
+		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'continue' ;
+	}  else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var newGameMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 365 * w / 978 ) - ((offsetX - w) / 2)  )  <=  84 * w / 978 &&
+		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
+		document.body.style.cursor = "default" ;
+		nowPage = 'index' ;
+	} else if ( Math.abs( (tempX - 600 * w / 978 ) - ((offsetX - w) / 2)  )  <=  84 * w / 978 &&
+		 Math.abs( (tempY - 660 * h / 780 ) - ((offsetY - h) / 2)  )  <=  35 * h / 780	) {
+		document.body.style.cursor = "default" ;
+		nowPage = 'stage1' ;
+		resetAll();
+	} 
+}
+
+
+var continueGameMouseOver = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 470 * w / 978 ) - ((offsetX - w) / 2)  )  <=  73 * w / 978 &&
+		 Math.abs( (tempY - 668 * h / 780 ) - ((offsetY - h) / 2)  )  <=  30 * h / 780	) {
+		document.body.style.cursor = "pointer" ;
+		mouseOver = 'return' ;
+	} else if ( Math.abs( (tempX - 224 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'stage1' ;
+		}
+	} else if ( Math.abs( (tempX - 472 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage2') !== null && Cookies.get('stage2') !== "" && Cookies.get('stage2') !== undefined ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'stage2' ;
+		}
+	} else if ( Math.abs( (tempX - 730 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage3') !== null && Cookies.get('stage3') !== "" && Cookies.get('stage3') !== undefined ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'stage3' ;
+		}
+	} else if ( Math.abs( (tempX - 318 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage4') !== null && Cookies.get('stage4') !== "" && Cookies.get('stage4') !== undefined ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'stage4' ;
+		}
+	} else if ( Math.abs( (tempX - 632 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined ){
+			document.body.style.cursor = "pointer" ;
+			mouseOver = 'stage5' ;
+		}
+	} else {
+		document.body.style.cursor = "default" ;
+		mouseOver = 'none' ;
+	}
+}
+
+var continueGameMouseClick = function(e){
+	var temp = getMouseSite(e);
+	var tempX = temp.x , tempY = temp.y ;
+	var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+	var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+	var ratio = getRatio(offsetX,offsetY);
+	var w = ratio.w , h = ratio.h ;
+	if ( Math.abs( (tempX - 470 * w / 978 ) - ((offsetX - w) / 2)  )  <=  73 * w / 978 &&
+		 Math.abs( (tempY - 668 * h / 780 ) - ((offsetY - h) / 2)  )  <=  30 * h / 780	) {
+		document.body.style.cursor = "default" ;
+		nowPage = 'index' ;
+		mouseOver = 'none' ;
+	} else if ( Math.abs( (tempX - 224 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'stage1' ;
+			mouseOver = 'none' ;
+			resetAll();
+		}
+	} else if ( Math.abs( (tempX - 472 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage2') !== null && Cookies.get('stage2') !== "" && Cookies.get('stage2') !== undefined ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'stage2' ;
+			mouseOver = 'none' ;
+			resetAll();
+		}
+	} else if ( Math.abs( (tempX - 730 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 280 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage3') !== null && Cookies.get('stage3') !== "" && Cookies.get('stage3') !== undefined ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'stage3' ;
+			mouseOver = 'none' ;
+			resetAll();
+		}
+	} else if ( Math.abs( (tempX - 318 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage4') !== null && Cookies.get('stage4') !== "" && Cookies.get('stage4') !== undefined ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'stage4' ;
+			mouseOver = 'none' ;
+			resetAll();
+		}
+	} else if ( Math.abs( (tempX - 632 * w / 978 ) - ((offsetX - w) / 2)  )  <=  115 * w / 978 &&
+		 Math.abs( (tempY - 505 * h / 780 ) - ((offsetY - h) / 2)  )  <=  90 * h / 780	) {
+		if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined ){
+			document.body.style.cursor = "default" ;
+			nowPage = 'stage5' ;
+			mouseOver = 'none' ;
+			resetAll();
+		}
+	} 
+}
+
+var newGame = function(){
+	setMouseEvent(newGameMouseOver,newGameMouseClick);
+	ctx.drawImage(getImage('teach_bg'),c.width/2-940/2,0,940,780);
+	ctx.drawImage(getImage('new_return'),280,650,168,71);
+	ctx.drawImage(getImage('new_continue'),520,650,168,71);
+	ctx.drawImage(getImage('shovel'),730,580,155,174);
+	if ( mouseOver === 'return' ){
+		ctx.drawImage(getImage('new_return2'),280,650,168,71);
+	} else if ( mouseOver === 'continue' ){
+		ctx.drawImage(getImage('new_continue2'),520,650,168,71);
+	}
+}
+
+var continueGame = function(){
+	setMouseEvent(continueGameMouseOver,continueGameMouseClick);
+	ctx.drawImage(getImage('lv_bg'),c.width/2-940/2,0,940,780);
+	ctx.drawImage(getImage('return'),400,660,146,61);
+	if ( Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined )
+		ctx.drawImage(getImage('lv1'),100,200,233,179);
+	else 
+		ctx.drawImage(getImage('lv1_3'),100,200,233,179);
+	if ( Cookies.get('stage2') !== null && Cookies.get('stage2') !== "" && Cookies.get('stage2') !== undefined )
+		ctx.drawImage(getImage('lv2'),360,200,233,179);
+	else 
+		ctx.drawImage(getImage('lv2_3'),360,200,233,179);
+	if ( Cookies.get('stage3') !== null && Cookies.get('stage3') !== "" && Cookies.get('stage3') !== undefined )
+		ctx.drawImage(getImage('lv3'),620,200,233,179);
+	else 
+		ctx.drawImage(getImage('lv3_3'),620,200,233,179);
+	if ( Cookies.get('stage4') !== null && Cookies.get('stage4') !== "" && Cookies.get('stage4') !== undefined )
+		ctx.drawImage(getImage('lv4'),200,430,233,179);
+	else 
+		ctx.drawImage(getImage('lv4_3'),200,430,233,179);
+	if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined )
+		ctx.drawImage(getImage('lv5'),520,430,233,179);
+	else 
+		ctx.drawImage(getImage('lv5_3'),520,430,233,179);
+	if ( mouseOver === 'return' )
+		ctx.drawImage(getImage('return2'),400,660,146,61);
+	else if ( mouseOver === 'stage1' && Cookies.get('stage1') !== null && Cookies.get('stage1') !== "" && Cookies.get('stage1') !== undefined )
+		ctx.drawImage(getImage('lv1_2'),100,200,233,179);
+	else if ( mouseOver === 'stage2' && Cookies.get('stage2') !== null && Cookies.get('stage2') !== "" && Cookies.get('stage2') !== undefined )
+		ctx.drawImage(getImage('lv2_2'),360,200,233,179);
+	else if ( mouseOver === 'stage3' && Cookies.get('stage3') !== null && Cookies.get('stage3') !== "" && Cookies.get('stage3') !== undefined )
+		ctx.drawImage(getImage('lv3_2'),620,200,233,179);
+	else if ( mouseOver === 'stage4' && Cookies.get('stage4') !== null && Cookies.get('stage4') !== "" && Cookies.get('stage4') !== undefined )
+		ctx.drawImage(getImage('lv4_2'),200,430,233,179);
+	else if ( mouseOver === 'stage5' && Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined )
+		ctx.drawImage(getImage('lv5_2'),520,430,233,179);
+}
+
+var index = function(){
+	setMouseEvent(indexMouseOver,indexMouseClick);
+	ctx.drawImage(getImage('index'),c.width/2-940/2,0,940,780);
+	ctx.drawImage(getImage('new'),350,280,252,81);
+	ctx.drawImage(getImage('continue'),350,380,252,81);
+	ctx.drawImage(getImage('rank'),350,480,252,81);
+	ctx.drawImage(getImage('pig'),600,200,298,431);
+	if (mouseOver === 'new'){
+		ctx.drawImage(getImage('new2'),350,280,252,81);
+	} else if ( mouseOver === 'continue'){
+		ctx.drawImage(getImage('continue2'),350,380,252,81);
+	} else if ( mouseOver === 'rank' )
+		ctx.drawImage(getImage('rank2'),350,480,252,81);
+}
+
+var rank = function(){
+	setMouseEvent(rankMouseOver,rankMouseClick);
+	ctx.drawImage(getImage('rank_bg'),c.width/2-940/2,0,940,780);
+	ctx.drawImage(getImage('return'),400,625,146,64) ;
+	if (mouseOver === 'return'){
+		ctx.drawImage(getImage('return2'),400,625,146,64) ;
+	} 
+	ctx.font="bold 40px Microsoft JhengHei";
+	ctx.fillStyle = 'brown' ;
+	ctx.fillText("排名",300,280,100,100) ;
+	ctx.fillText("名稱",430,280,100,100) ;
+	ctx.fillText("分數",560,280,100,100) ;
+	ctx.font="bold 30px Microsoft JhengHei";
+	ctx.fillStyle = 'black' ;
+	for ( var i = 1 ; i <= 6 ; i ++ ){
+		var player = Cookies.getJSON("theRank"+i) ;
+		ctx.fillText(i,328,280+i*50,100,100) ;
+		ctx.fillText(player.name,430,280+i*50,100,100) ;
+		ctx.fillText(player.score,580,280+i*50,100,100) ;
+	}
+	ctx.font="30px Arial";
+	if ( isShowConfirm === true ){
+		showConfirm();
+	}
+}
+
+
+// stage1
 var Stage1 = function(){
 	stageAllSet();
 	initFirstBox();
@@ -1241,7 +1669,15 @@ var Stage5 = function(){
 
 
 var changePage = function(){
-	if ( nowPage === 'stage1' ){
+	if ( nowPage === 'index' ){
+		index();
+	} else if ( nowPage === 'rank' ){
+		rank(); 
+	} else if ( nowPage === 'continueGame' ){
+		continueGame();
+	} else if ( nowPage === 'newGame' ){
+		newGame();
+	} else if ( nowPage === 'stage1' ){
 		Stage1();
 	} else if ( nowPage === 'stage2' ){
 		Stage2();
@@ -1259,4 +1695,11 @@ window.addEventListener('load', function() {
     FastClick.attach(document.body);
 }, false);
 
+/*
+Cookies.remove('stage1');
+Cookies.remove('stage2');
+Cookies.remove('stage3');
+Cookies.remove('stage4');
+Cookies.remove('stage5');
+*/
 init();
