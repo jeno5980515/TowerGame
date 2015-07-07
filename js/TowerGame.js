@@ -611,7 +611,7 @@ var resetAll = function(){
 	remainLeftHeight = 0 ;
 	remainRightHeight = 0 ;
 	hasFirstBox = false ;
-	hook = createBox('rectangle',300,50,0,0,"static",getImage("hook")) ;
+	hook = createBox('rectangle',300,50,-100,-100,"static",getImage("hook")) ;
 	hook.state.angular.pos = Math.PI / 2 ;
 	var type ;
 	if ( randomType === 0 )
