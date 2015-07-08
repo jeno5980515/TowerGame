@@ -13,6 +13,26 @@ window.requestAnimFrame = function(){
     );
 }();
 
+var backGroundLeftOneCanvas = document.createElement("canvas"); 
+var backGroundLeftOneCtx = backGroundLeftOneCanvas.getContext("2d");
+var backGroundRightOneCanvas = document.createElement("canvas"); 
+var backGroundRightOneCtx = backGroundRightOneCanvas.getContext("2d");
+var backGroundLeftTwoCanvas = document.createElement("canvas"); 
+var backGroundLeftTwoCtx = backGroundLeftTwoCanvas.getContext("2d");
+var backGroundRightTwoCanvas = document.createElement("canvas"); 
+var backGroundRightTwoCtx = backGroundRightTwoCanvas.getContext("2d");
+
+var goalTagRightCanvas = document.createElement("canvas"); 
+var goalTagRightCtx = goalTagRightCanvas.getContext("2d");
+var nowTagRightCanvas = document.createElement("canvas"); 
+var nowTagRightCtx = nowTagRightCanvas.getContext("2d");
+var goalTagLeftCanvas = document.createElement("canvas"); 
+var goalTagLeftCtx = goalTagLeftCanvas.getContext("2d");
+var nowTagLeftCanvas = document.createElement("canvas"); 
+var nowTagLeftCtx = nowTagLeftCanvas.getContext("2d");
+var beginCount ;
+var cacheMap = {} ;
+var hookCache = {} ;
 
 document.getElementById("bg").src = "sound/background.mp3" ;
 document.getElementById("fail").src = "sound/fail.mp3" ;
@@ -82,7 +102,6 @@ var winSound = false ;
 var failSound = false ;
 var boxSound = false ;
 
-
 var lastBox = {
 	x : 0 ,
 	y : 0 
@@ -120,6 +139,7 @@ var saveData = function(){
 var setMouseEvent = function(over,click){
 	document.onclick = click ;
 	document.onmousemove = over ;
+	document.ontouchend = click ;
 } 
 
 var getMouseSite = function(e){
@@ -183,7 +203,9 @@ var showTeachMouseClick = function(e){
 		isTeaching = false ;
 		mouseOver = 'none' ;
 		beginCountTime();
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 
@@ -247,7 +269,13 @@ var showTag = function(){
 
 var showNowTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('nowtag'),635,739-(739-228)*nowHeight/goalHeight,95,32) ;
+		if ( nowTagRightCanvas.cache === undefined ){
+			nowTagRightCanvas.width = 95 ;
+			nowTagRightCanvas.height = 32 ;
+			nowTagRightCtx.drawImage(getImage('nowtag'),0,0,95,32) ;
+			nowTagRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(nowTagRightCanvas,635,739-(739-228)*nowHeight/goalHeight) ;
 		var base = 675 + (nowHeight.toString().length - 1 ) * 8 ;
 		var temp = nowHeight ;
 		ctx.drawImage(getImage('M'),base,745-(745-234)*nowHeight/goalHeight,15,20) ;
@@ -260,7 +288,13 @@ var showNowTag = function(){
 				break ;
 		}
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('nowtag'),645,738-(738-222)*nowRightHeight/goalHeight,95,32) ;
+		if ( nowTagRightCanvas.cache === undefined ){
+			nowTagRightCanvas.width = 95 ;
+			nowTagRightCanvas.height = 32 ;
+			nowTagRightCtx.drawImage(getImage('nowtag'),0,0,95,32) ;
+			nowTagRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(nowTagRightCanvas,645,738-(738-222)*nowRightHeight/goalHeight) ;
 		var base = 685 + (nowRightHeight.toString().length - 1 ) * 8 ;
 		var temp = nowRightHeight ;
 		ctx.drawImage(getImage('M'),base,744-(744-228)*nowRightHeight/goalHeight,15,20) ;
@@ -272,7 +306,13 @@ var showNowTag = function(){
 			if ( temp === 0 )
 				break ;
 		}
-		ctx.drawImage(getImage('nowtag2'),62,738-(738-222)*nowLeftHeight/goalHeight,95,32) ;
+		if ( nowTagLeftCanvas.cache === undefined ){
+			nowTagLeftCanvas.width = 95 ;
+			nowTagLeftCanvas.height = 32 ;
+			nowTagLeftCtx.drawImage(getImage('nowtag2'),0,0,95,32) ;
+			nowTagLeftCanvas.cache = true ;
+		} 
+		ctx.drawImage(nowTagLeftCanvas,62,738-(738-222)*nowLeftHeight/goalHeight) ;
 		var base = 115 + (nowLeftHeight.toString().length - 1 ) * 8 ;
 		var temp = nowLeftHeight ;
 		ctx.drawImage(getImage('M'),base,744-(744-228)*nowLeftHeight/goalHeight,15,20) ;
@@ -289,7 +329,14 @@ var showNowTag = function(){
 
 var showGoalTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('goaltag'),635,236,95,32) ;
+		if ( goalTagRightCanvas.cache === undefined ){
+			goalTagRightCanvas.width = 95 ;
+			goalTagRightCanvas.height = 32 ;
+			goalTagRightCtx.drawImage(getImage('goaltag'),0,0,95,32) ;
+			goalTagRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(goalTagRightCanvas,635,236) ;
+		
 		var base = 675 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
 		ctx.drawImage(getImage('M'),base,242,15,20) ;
@@ -302,7 +349,13 @@ var showGoalTag = function(){
 				break ;
 		}
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('goaltag'),645,230,95,32) ;
+		if ( goalTagRightCanvas.cache === undefined ){
+			goalTagRightCanvas.width = 95 ;
+			goalTagRightCanvas.height = 32 ;
+			goalTagRightCtx.drawImage(getImage('goaltag'),0,0,95,32) ;
+			goalTagRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(goalTagRightCanvas,645,230) ;
 		var base = 685 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
 		ctx.drawImage(getImage('M'),base,236,15,20) ;
@@ -314,7 +367,13 @@ var showGoalTag = function(){
 			if ( temp === 0 )
 				break ;
 		}
-		ctx.drawImage(getImage('goaltag2'),62,230,95,32) ;
+		if ( goalTagLeftCanvas.cache === undefined ){
+			goalTagLeftCanvas.width = 95 ;
+			goalTagLeftCanvas.height = 32 ;
+			goalTagLeftCtx.drawImage(getImage('goaltag2'),0,0,95,32) ;
+			goalTagLeftCanvas.cache = true ;
+		} 
+		ctx.drawImage(goalTagLeftCanvas,62,230) ;
 		base = 115 + (goalHeight.toString().length - 1 ) * 8 ;
 		var temp = goalHeight ;
 		ctx.drawImage(getImage('M'),base,236,15,20) ;
@@ -441,6 +500,79 @@ var getImage = function(source){
 }
 
 var drawBody = function( body, view, ctx, offset ){
+	if ( body.label === 'hook' ){
+		var pos = body.state.pos
+			,os = body.offset
+			,v = body.state.vel
+			,t = this._interpolateTime || 0
+			,x
+			,y
+			,ang
+			,aabb
+			;
+		offset = offset || this.options.offset;
+		x = pos._[0] + offset.x + v._[0] * t;
+		y = pos._[1] + offset.y + v._[1] * t;
+		ang = body.state.angular.pos + body.state.angular.vel * t;
+		var obj = hookCache[ang] ;
+		if ( obj !== undefined ){
+			ctx.drawImage(obj, body.state.pos.x - obj.width / 2 , body.state.pos.y - obj.height / 2 );
+			return ;
+		} 
+		var cacheCanvas = document.createElement("canvas") ;
+		cacheCanvas.width = view.width * 2 ;
+		cacheCanvas.height = view.height * 2  ;
+		var cacheCtx = cacheCanvas.getContext("2d"); 
+		cacheCtx.save();
+		cacheCtx.translate(view.width/2 ,view.height/2);
+		cacheCtx.translate(view.width/2,view.height/2); 
+		cacheCtx.rotate( ang );
+		cacheCtx.translate(-view.width/2,-view.height/2);
+		cacheCtx.drawImage(view, 0,  0, view.width, view.height);
+		cacheCtx.restore();
+		ctx.drawImage(cacheCanvas,body.state.pos.x - cacheCanvas.width / 2 , body.state.pos.y - cacheCanvas.height / 2 );
+		hookCache[ang] = cacheCanvas ;
+		return ;
+	} 
+	/*
+	var name = view.src ;
+	var obj = cacheMap[name] ;
+	var pos = body.state.pos
+		,os = body.offset
+		,v = body.state.vel
+		,t = this._interpolateTime || 0
+		,x
+		,y
+		,ang
+		,aabb
+		;
+	offset = offset || this.options.offset;
+	x = pos._[0] + offset.x + v._[0] * t;
+	y = pos._[1] + offset.y + v._[1] * t;
+	ang = body.state.angular.pos + body.state.angular.vel * t;
+	if ( obj !== undefined ){
+		if ( obj[ang] !== undefined ) {
+			ctx.drawImage(obj[ang], body.state.pos.x - obj[ang].width / 2 , body.state.pos.y - obj[ang].height / 2 );
+			return ;
+		}
+	} else {
+		cacheMap[name] = {} ;
+		obj = cacheMap[name] ;
+	}
+	var cacheCanvas = document.createElement("canvas") ;
+	cacheCanvas.width = view.width * 3 ;
+	cacheCanvas.height = view.height * 3  ;
+	var cacheCtx = cacheCanvas.getContext("2d"); 
+	cacheCtx.save();
+	cacheCtx.translate(view.width ,view.height);
+	cacheCtx.translate(view.width/2,view.height/2); 
+	cacheCtx.rotate( ang );
+	cacheCtx.translate(-view.width/2,-view.height/2);
+	cacheCtx.drawImage(view, 0,  0, view.width, view.height);
+	cacheCtx.restore();
+	ctx.drawImage(cacheCanvas,body.state.pos.x - cacheCanvas.width / 2 , body.state.pos.y - cacheCanvas.height / 2 );
+	obj[ang] = cacheCanvas ;
+	*/
 	var pos = body.state.pos
 		,os = body.offset
 		,v = body.state.vel
@@ -500,51 +632,57 @@ var init = function(){
 }
 
 var beginCountTime = function(){
-	if ( isTeach === false && isTeaching === false  )
+	if ( isTeach === false && isTeaching === false && beginCount === false ){
 		countTimer = setInterval(countTime,1000);
+		beginCount = true ;
+	}
 }
 
 var resetAll = function(){
 	ctx.font="30px Arial";
+	beginCount = false ;
+	isPush = false ;
+	isBoxTouch = false ;
 	boxSound = false ;
 	winSound = false ;
 	failSound = false ;
 	isFirst();
+	mouseOver = 'none' ;
 	if ( nowPage === 'stage1'){
 		isTeach = true ;
 		isTeaching = true ;
 		amount = 1 ;
 		randomType = 0 ;
 		goalHeight = 60 ; //60
-		remainTime = 60 ;
+		remainTime = 70 ;
 	} else if ( nowPage === 'stage2' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 1 ;
 		randomType = 1 ;
 		goalHeight = 60 ; //60
-		remainTime = 60 ;
+		remainTime = 70 ;
 	} else if ( nowPage === 'stage3' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 2 ;
 		randomType = 1 ;
 		goalHeight = 40 ; //40
-		remainTime = 60 ;
+		remainTime = 80 ;
 	} else if ( nowPage === 'stage4' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 1 ;
 		randomType = 1 ;
-		goalHeight = 80 ; //80
-		remainTime = 100 ;
+		goalHeight = 80; //80
+		remainTime = 120 ;
 	} else if ( nowPage === 'stage5' ){
 		isTeach = true ;
 		isTeaching = false ;
 		amount = 2 ;
 		randomType = 1 ;
 		goalHeight = 60 ; //60
-		remainTime = 100 ;
+		remainTime = 120 ;
 	}
 	if ( world !== undefined )
 		world.destroy();
@@ -564,7 +702,7 @@ var resetAll = function(){
 				}),
 				Physics.behavior('body-impulse-response'),
 				Physics.behavior('constant-acceleration',{
-					acc: { x : 0, y: 0.0004 } 
+					acc: { x : 0, y: 0.001 } 
 				}),
 				Physics.behavior('body-collision-detection'),
 				Physics.behavior('sweep-prune')
@@ -611,8 +749,9 @@ var resetAll = function(){
 	remainLeftHeight = 0 ;
 	remainRightHeight = 0 ;
 	hasFirstBox = false ;
-	hook = createBox('rectangle',300,50,-100,-100,"static",getImage("hook")) ;
+	hook = createBox('rectangle',300,54,-100,-100,"static",getImage("hook")) ;
 	hook.state.angular.pos = Math.PI / 2 ;
+	hook.label = 'hook' ;
 	var type ;
 	if ( randomType === 0 )
 		type = simpleBoxList[Math.floor(Math.random() * simpleBoxList.length)] ;
@@ -631,6 +770,7 @@ var resetAll = function(){
 	world.add(hook);
 	world.add(hookBox);
 	FirstEnterPage = true ;
+	clearTimeout(reloadTimer);
 	clearTimeout(countTimer);
 	clearTimeout(addHeightTimer);
 	clearTimeout(addLeftHeightTimer);
@@ -754,6 +894,8 @@ var moveHook = function(spin){
 }
 
 var send = function(){
+	document.getElementById("input").blur();
+	document.getElementById("input").disabled = true ;
 	var name = "" ;
 	for ( var i = 0 ; i < inputBox.length ; i ++ )
 		name += inputBox[i] ;
@@ -765,6 +907,8 @@ var send = function(){
 }
 
 var showConfirm = function(){
+	document.getElementById("input").disabled = false ;
+	document.getElementById("input").focus();
 	ctx.drawImage(getImage('input'),310,400,360,45) ;
 	ctx.drawImage(getImage('confirm'),585,410,66,28) ;
 	if ( mouseOver === 'confirm' ){
@@ -794,6 +938,15 @@ var showConfirm = function(){
 
 var toRank = function(){
 	total = parseInt(Cookies.get('stage1')) + parseInt(Cookies.get('stage2')) + parseInt(Cookies.get('stage3')) + parseInt(Cookies.get('stage4')) + parseInt(Cookies.get('stage5')) ;
+	if ( Cookies.get('theRank1') === undefined || Cookies.get('theRank1') === null ){
+		Cookies.set('theRank0',{name:'boss',score:99999}) ;
+		Cookies.set('theRank1',{name:'king',score:35}) ;
+		Cookies.set('theRank2',{name:'happycat',score:30}) ;
+		Cookies.set('theRank3',{name:'francis',score:25}) ;
+		Cookies.set('theRank4',{name:'Amy',score:20}) ;
+		Cookies.set('theRank5',{name:'123',score:15}) ;
+		Cookies.set('theRank6',{name:'handsome',score:10}) ;
+	}
 	for ( var i = 0 ; i <= 5 ; i ++ ){
 		if ( parseInt(Cookies.getJSON('theRank'+i.toString()).score) >= total && total > parseInt(Cookies.getJSON('theRank'+((i+1).toString()) ).score) ){
 			isShowConfirm = true ;
@@ -813,6 +966,7 @@ var toWin = function(){
 		ctx.drawImage(getImage('next2'),270,420,252,81) ;
 	else 
 		ctx.drawImage(getImage('next'),270,420,252,81) ;
+	clearTimeout(reloadTimer);
 	clearTimeout(countTimer);
 	clearTimeout(addHeightTimer);
 	clearTimeout(addLeftHeightTimer);
@@ -927,7 +1081,7 @@ var checkBox = function(){
 	} else if ( amount === 2 ){
 		if ( leftTower.length <= 2 && rightTower.length <= 2  )
 			return ;
-		if ( leftTower.length > rightTower.length + 2 || leftTower.length + 2 < rightTower.length ){
+		if ( leftTower.length > rightTower.length + 3 || leftTower.length + 3 < rightTower.length ){
 			toGameOver();
 			return ;
 		}
@@ -974,14 +1128,17 @@ var reloadHook = function(){
 var drawBox = function(){
 	if ( amount === 1 ){
 		for ( var i = 0 ; i < boxList.length ; i ++ ){
-			drawBody(boxList[i],boxList[i].view,ctx,boxList[i].offset);
+			if ( boxList[i].state.pos.y < 850 )
+				drawBody(boxList[i],boxList[i].view,ctx,boxList[i].offset);
 		}
 	} else {
 		for ( var i = 0 ; i < leftTower.length ; i ++ ){
-			drawBody(leftTower[i],leftTower[i].view,ctx,leftTower[i].offset);
+			if ( leftTower[i].state.pos.y < 850 )
+				drawBody(leftTower[i],leftTower[i].view,ctx,leftTower[i].offset);
 		}
 		for ( var i = 0 ; i < rightTower.length ; i ++ ){
-			drawBody(rightTower[i],rightTower[i].view,ctx,rightTower[i].offset);
+			if ( rightTower[i].state.pos.y < 850 )
+				drawBody(rightTower[i],rightTower[i].view,ctx,rightTower[i].offset);
 		}
 	}
 }
@@ -1113,7 +1270,9 @@ var gameWinMouseClick = function(e){
 			mouseOver = 'none' ;
 			resetAll();
 		}
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var gameOverMouseOver = function(e){
@@ -1150,22 +1309,49 @@ var gameOverMouseClick = function(e){
 		isGameOver = false ;
 		mouseOver = 'none' ;
 		resetAll();
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var drawBackGroundRight = function(){
-	if ( amount === 1 )
-		ctx.drawImage(getImage('game_bg_2'),c.width/2-940/2+768,0,172,780) ;
+	if ( amount === 1 ){
+		if ( backGroundRightOneCtx.cache === undefined ){
+			backGroundRightOneCanvas.width = 172 ;
+			backGroundRightOneCanvas.height = 780 ;
+			backGroundRightOneCtx.drawImage(getImage('game_bg_2'),0,0,172,780) ;
+			backGroundRightOneCtx.cache = true ;
+		} 
+		ctx.drawImage(backGroundRightOneCanvas,c.width/2-940/2+768,0,172,780) ;
+	}
 	else {
-		ctx.drawImage(getImage('game_bg2_2'),c.width/2-940/2+768,0,172,780) ;
+		if ( backGroundRightTwoCtx.cache === undefined ){
+			backGroundRightTwoCanvas.width = 172 ;
+			backGroundRightTwoCanvas.height = 780 ;
+			backGroundRightTwoCtx.drawImage(getImage('game_bg2_2'),0,0,172,780) ;
+			backGroundRightTwoCtx.cache = true ;
+		} 
+		ctx.drawImage(backGroundRightTwoCanvas,c.width/2-940/2+768,0,172,780) ;
 	}
 }
 
 var drawBackGroundLeft = function(){
-	if ( amount === 1 )
-		ctx.drawImage(getImage('game_bg_1'),c.width/2-940/2,0,768,780) ;
-	else {
-		ctx.drawImage(getImage('game_bg2_1'),c.width/2-940/2,0,768,780) ;
+	if ( amount === 1 ){
+		if ( backGroundLeftOneCtx.cache === undefined ){
+			backGroundLeftOneCanvas.width = 800 ;
+			backGroundLeftOneCanvas.height = 780 ;
+			backGroundLeftOneCtx.drawImage(getImage('game_bg_1'),978/2-940/2,0,768,780) ;
+			backGroundLeftOneCtx.cache = true ;
+		} 
+		ctx.drawImage(backGroundLeftOneCtx.canvas,0,0 );
+	} else {
+		if ( backGroundLeftTwoCtx.cache === undefined ){
+			backGroundLeftTwoCanvas.width = 800 ;
+			backGroundLeftTwoCanvas.height = 780 ;
+			backGroundLeftTwoCtx.drawImage(getImage('game_bg2_1'),978/2-940/2,0,768,780) ;
+			backGroundLeftTwoCtx.cache = true ;
+		} 
+		ctx.drawImage(backGroundLeftTwoCtx.canvas,0,0 );
 	}
 }
 
@@ -1236,7 +1422,9 @@ var toTeachingMouseClick = function(e){
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "default" ;
 		nowPage = 'newGame' ;
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var toTeachMouseOver = function(e){
@@ -1284,7 +1472,9 @@ var toTeachMouseClick = function(e){
 		Math.abs( (tempY - 708 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "default" ;
 		nowPage = 'newGame' ;
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var toTeach = function(){
@@ -1387,7 +1577,12 @@ var rankMouseClick = function(e){
 		Math.abs( (tempY - 630 * h / 780 ) - ((offsetY - h) / 2)  )  <=  31 * h / 780	){
 		document.body.style.cursor = "default" ;
 		nowPage = 'index' ;
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
+	if ( isShowConfirm === true ){
+		document.getElementById("input").focus();
+	}
 }
 
 var indexMouseOver = function(e){
@@ -1450,7 +1645,9 @@ var indexMouseClick = function(e){
 		 Math.abs( (tempY - 503 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780	) {
 		document.body.style.cursor = "default" ;
 		nowPage = 'rank' ;
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var newGameMouseOver = function(e){
@@ -1499,7 +1696,9 @@ var newGameMouseClick = function(e){
 		document.body.style.cursor = "default" ;
 		nowPage = 'stage1' ;
 		resetAll();
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 
@@ -1627,7 +1826,9 @@ var continueGameMouseClick = function(e){
 			mouseOver = 'none' ;
 			resetAll();
 		}
-	} 
+	} else {
+		mouseOver = 'none' ;
+	}
 }
 
 var newGame = function(){
@@ -1812,6 +2013,7 @@ var Stage5 = function(){
 
 
 var changePage = function(){
+	requestAnimationFrame(changePage);
 	if ( nowPage === 'index' ){
 		index();
 	} else if ( nowPage === 'rank' ){
@@ -1831,7 +2033,6 @@ var changePage = function(){
 	} else if ( nowPage === 'stage5' ){
 		Stage5();
 	}
-	requestAnimationFrame(changePage);
 }
 
 window.addEventListener('load', function() {
@@ -1845,4 +2046,5 @@ Cookies.remove('stage3');
 Cookies.remove('stage4');
 Cookies.remove('stage5');
 */
+
 init();
