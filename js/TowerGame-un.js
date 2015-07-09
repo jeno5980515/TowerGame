@@ -498,8 +498,42 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
         failSound = winSound = boxSound = isBoxTouch = isPush = beginCount = !1;
         isFirst();
         mouseOver = "none";
-        "stage1" === nowPage ? (isTeaching = isTeach = !0, amount = 1, randomType = 0, goalHeight = 60, remainTime = 70) : "stage2" === nowPage ? (isTeach = !0, isTeaching = !1, randomType = amount = 1, goalHeight = 60, remainTime = 70) : "stage3" === nowPage ? (isTeach = !0, isTeaching = !1, amount = 2, randomType = 1, goalHeight = 40, remainTime = 80) : "stage4" === nowPage ?
-            (isTeach = !0, isTeaching = !1, randomType = 2 , amount = 1, goalHeight = 70, remainTime = 120) : "stage5" === nowPage && (isTeach = !0, isTeaching = !1, amount = 2, randomType = 2, goalHeight = 50, remainTime = 120);
+		if ( nowPage === 'stage1'){
+			isTeach = true ;
+			isTeaching = true ;
+			amount = 1 ;
+			randomType = 0 ;
+			goalHeight = 60 ; //60
+			remainTime = 70 ;
+		} else if ( nowPage === 'stage2' ){
+			isTeach = true ;
+			isTeaching = false ;
+			amount = 1 ;
+			randomType = 1 ;
+			goalHeight = 60 ; //60
+			remainTime = 70 ;
+		} else if ( nowPage === 'stage3' ){
+			isTeach = true ;
+			isTeaching = false ;
+			amount = 2 ;
+			randomType = 1 ;
+			goalHeight = 40 ; //40
+			remainTime = 80 ;
+		} else if ( nowPage === 'stage4' ){
+			isTeach = true ;
+			isTeaching = false ;
+			amount = 1 ;
+			randomType = 2 ;
+			goalHeight = 70; //80
+			remainTime = 120 ;
+		} else if ( nowPage === 'stage5' ){
+			isTeach = true ;
+			isTeaching = false ;
+			amount = 2 ;
+			randomType = 2 ;
+			goalHeight = 50 ; //60
+			remainTime = 120 ;
+		}
         void 0 !== world && world.destroy();
         world = Physics(function(a) {
             var f = Physics.aabb(0, 0, viewWidth, 2 * viewHeight);
