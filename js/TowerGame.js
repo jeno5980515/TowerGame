@@ -44,6 +44,7 @@ var tagDownLeftCtx = tagDownLeftCanvas.getContext("2d");
 var beginCount ;
 var cacheMap = {} ;
 var hookCache = {} ;
+var nextCache = {} ;
 
 document.getElementById("bg").src = "sound/background.mp3" ;
 document.getElementById("fail").src = "sound/fail.mp3" ;
@@ -506,10 +507,28 @@ var randomBox = function(){
 }
 
 var showNext = function(){
-	if ( amount === 1 )
-		ctx.drawImage(getImage(nextBox),860-boxType[nextBox].width*21/100,600,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
-	else if ( amount === 2 )
-		ctx.drawImage(getImage(nextBox),860-boxType[nextBox].width*21/100,680,boxType[nextBox].width * 57/100,boxType[nextBox].height * 57/100) ;
+	if ( amount === 1 ){
+		if ( nextCache[nextBox] === undefined ){
+			var cacheCanvas = document.createElement("canvas") ;
+			cacheCanvas.width = boxType[nextBox].width * 57/100 ;
+			cacheCanvas.height = boxType[nextBox].height * 57/100  ;
+			var cacheCtx = cacheCanvas.getContext("2d"); 
+			cacheCtx.drawImage(getImage(nextBox), 0,  0, cacheCanvas.width, cacheCanvas.height);
+			nextCache[nextBox] = cacheCanvas ;
+		}
+		ctx.drawImage(nextCache[nextBox],860-boxType[nextBox].width*21/100,600) ;
+	}
+	else if ( amount === 2 ){
+		if ( nextCache[nextBox] === undefined ){
+			var cacheCanvas = document.createElement("canvas") ;
+			cacheCanvas.width = boxType[nextBox].width * 57/100 ;
+			cacheCanvas.height = boxType[nextBox].height * 57/100  ;
+			var cacheCtx = cacheCanvas.getContext("2d"); 
+			cacheCtx.drawImage(getImage(nextBox), 0,  0, cacheCanvas.width, cacheCanvas.height);
+			nextCache[nextBox] = cacheCanvas ;
+		}
+		ctx.drawImage(nextCache[nextBox],860-boxType[nextBox].width*21/100,680) ;
+	}
 }
 
 var createBox = function(type,inX,inY,inWidth,inHeight,inTreatment,inView){
