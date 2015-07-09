@@ -30,6 +30,17 @@ var goalTagLeftCanvas = document.createElement("canvas");
 var goalTagLeftCtx = goalTagLeftCanvas.getContext("2d");
 var nowTagLeftCanvas = document.createElement("canvas"); 
 var nowTagLeftCtx = nowTagLeftCanvas.getContext("2d");
+
+var tagTopRightCanvas = document.createElement("canvas"); 
+var tagTopRightCtx = tagTopRightCanvas.getContext("2d");
+var tagDownRightCanvas = document.createElement("canvas"); 
+var tagDownRightCtx = tagDownRightCanvas.getContext("2d");
+var tagTopLeftCanvas = document.createElement("canvas"); 
+var tagTopLeftCtx = tagTopLeftCanvas.getContext("2d");
+var tagDownLeftCanvas = document.createElement("canvas"); 
+var tagDownLeftCtx = tagDownLeftCanvas.getContext("2d");
+
+
 var beginCount ;
 var cacheMap = {} ;
 var hookCache = {} ;
@@ -253,16 +264,52 @@ var showBlock = function(){
 
 var showTag = function(){
 	if ( amount === 1 ){
-		ctx.drawImage(getImage('tag'),742,738-(738-228)*nowHeight/goalHeight,37,18) ;
+		if ( tagTopRightCanvas.cache === undefined ){
+			tagTopRightCanvas.width = 37 ;
+			tagTopRightCanvas.height = 18 ;
+			tagTopRightCtx.drawImage(getImage('tag'),0,0,37,18) ;
+			tagTopRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagTopRightCanvas,742,738-(738-228)*nowHeight/goalHeight) ;
 		ctx.drawImage(getImage('tag2'),742,712-(738-228)*nowHeight/goalHeight+43,37,(738-228)*nowHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3'),742,755,37,19) ;
+		if ( tagDownRightCanvas.cache === undefined ){
+			tagDownRightCanvas.width = 37 ;
+			tagDownRightCanvas.height = 19 ;
+			tagDownRightCtx.drawImage(getImage('tag3'),0,0,37,19) ;
+			tagDownRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagDownRightCanvas,742,755) ;
 	} else if ( amount === 2 ){
-		ctx.drawImage(getImage('tag'),744,738-(738-222)*nowRightHeight/goalHeight,35,18) ;
+		if ( tagTopRightCanvas.cache === undefined ){
+			tagTopRightCanvas.width = 37 ;
+			tagTopRightCanvas.height = 18 ;
+			tagTopRightCtx.drawImage(getImage('tag'),0,0,37,18) ;
+			tagTopRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagTopRightCanvas,744,738-(738-222)*nowRightHeight/goalHeight) ;
 		ctx.drawImage(getImage('tag2'),744,712-(738-222)*nowRightHeight/goalHeight+43,35,(738-222)*nowRightHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3'),744,755,35,19) ;
-		ctx.drawImage(getImage('tag_2'),22,738-(738-222)*nowLeftHeight/goalHeight,35,18) ;
+		if ( tagDownRightCanvas.cache === undefined ){
+			tagDownRightCanvas.width = 37 ;
+			tagDownRightCanvas.height = 19 ;
+			tagDownRightCtx.drawImage(getImage('tag3'),0,0,37,19) ;
+			tagDownRightCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagDownRightCanvas,744,755) ;
+		if ( tagTopLeftCanvas.cache === undefined ){
+			tagTopLeftCanvas.width = 35 ;
+			tagTopLeftCanvas.height = 18 ;
+			tagTopLeftCtx.drawImage(getImage('tag_2'),0,0,35,18) ;
+			tagTopLeftCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagTopLeftCanvas,22,738-(738-222)*nowLeftHeight/goalHeight) ;
 		ctx.drawImage(getImage('tag2'),22,712-(738-222)*nowLeftHeight/goalHeight+43,35,(738-222)*nowLeftHeight/goalHeight) ;
-		ctx.drawImage(getImage('tag3_2'),22,755,35,19) ;
+		if ( tagDownLeftCanvas.cache === undefined ){
+			tagDownLeftCanvas.width = 35 ;
+			tagDownLeftCanvas.height = 19 ;
+			tagDownLeftCtx.drawImage(getImage('tag3_2'),0,0,35,19) ;
+			tagDownLeftCanvas.cache = true ;
+		} 
+		ctx.drawImage(tagDownLeftCanvas,22,755) ;
 	}
 	
 }
