@@ -1034,7 +1034,7 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
 			if ( nowPage === 'stage5' ){
 				toRank();
 				nowPage = 'rank' ;
-			} else if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined ){
+			} else if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined && Cookies.get('stage5') !== 0 ){
 				toRank();
 				if ( isShowConfirm === true )
 					nowPage = 'rank' ;
