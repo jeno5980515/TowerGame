@@ -56,6 +56,7 @@ var backGroundLeftOneCanvas = document.createElement("canvas"),
     goIndex2Canvas = document.createElement("canvas"),
     goIndex2Ctx = goIndex2Canvas.getContext("2d"),
 	cloud1X , cloud2X , cloud3X ,
+	isSaveData , tempSaveData ,
     beginCount, cacheMap = {},
 	heightNumberCache = {},
 	timeNumberCache = {},
@@ -157,17 +158,19 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
             nowPage ? (void 0 === stage2Ctx.cache && (stage2Canvas.width = 140, stage2Canvas.height = 70, stage2Ctx.drawImage(getImage("stage2"), 0, 0, 140, 70), stage2Ctx.cache = !0), ctx.drawImage(stage2Ctx.canvas, 800, 50)) : "stage3" === nowPage ? (void 0 === stage3Ctx.cache && (stage3Canvas.width = 140, stage3Canvas.height = 70, stage3Ctx.drawImage(getImage("stage3"), 0, 0, 140, 70), stage3Ctx.cache = !0), ctx.drawImage(stage3Ctx.canvas, 800, 50)) : "stage4" === nowPage ? (void 0 === stage4Ctx.cache && (stage4Canvas.width = 140, stage4Canvas.height = 70, stage4Ctx.drawImage(getImage("stage4"),
                 0, 0, 140, 70), stage4Ctx.cache = !0), ctx.drawImage(stage4Ctx.canvas, 800, 50)) : "stage5" === nowPage && (void 0 === stage5Ctx.cache && (stage5Canvas.width = 140, stage5Canvas.height = 70, stage5Ctx.drawImage(getImage("stage5"), 0, 0, 140, 70), stage5Ctx.cache = !0), ctx.drawImage(stage5Ctx.canvas, 800, 50))
     },
-    saveData = function() {
-        var a = Cookies.get(nowPage);
-        (null === a || "" === a || void 0 === a || parseInt(a) < remainTime) && Cookies.set(nowPage, remainTime, {
-            expires: 36500
-        });
-        a = Cookies.get(getNextPage());
-        null !== a && "" !== a && void 0 !== a || Cookies.set(getNextPage(),
-            0, {
-                expires: 36500
-            })
-    },
+	saveData = function(){
+		var time = Cookies.get(nowPage);
+		if ( time === null || time === "" || time === undefined || parseInt(time) < remainTime ){
+			Cookies.set(nowPage,remainTime,{ expires: 36500 });
+		} else if ( parseInt(time) >= remainTime ){
+			isSaveData = nowPage ;
+			tempSaveData = remainTime ;
+		}
+		var nextTime = Cookies.get(getNextPage()) ;
+		if ( nextTime === null || nextTime === "" || nextTime === undefined ){
+			Cookies.set(getNextPage(),0,{ expires: 36500 });
+		}
+	},
     setMouseEvent = function(a, b) {
         document.onclick = b;
         document.onmousemove = a;
@@ -653,6 +656,7 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
         !1 === isTeach && !1 === isTeaching && !1 === beginCount && (countTimer = setInterval(countTime, 1E3), beginCount = !0)
     },
     resetAll = function() {
+		isSaveData = "none" , tempSaveData = 0 ;
 		speed1 = 0.1 , speed2 = 0.5 , speed3 = -0.2 ;
 		cloud1X = 50 , cloud2X = 170 , cloud3X = 550 ; 
         pigIndex = 0;
@@ -808,6 +812,11 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
             345 + 25 * a, 430, 100, 100)
     },
     toRank = function() {
+		var temp = -1 ;
+		if ( isSaveData !== 'none' ){
+			temp = Cookies.get(isSaveData) ;
+			Cookies.set(isSaveData,tempSaveData,{ expires: 36500 });
+		}
         total = parseInt(Cookies.get("stage1")) + parseInt(Cookies.get("stage2")) + parseInt(Cookies.get("stage3")) + parseInt(Cookies.get("stage4")) + parseInt(Cookies.get("stage5"));
         if (void 0 === Cookies.get("theRank1") || null === Cookies.get("theRank1")) Cookies.set("theRank0", {
             name: "boss",
@@ -837,6 +846,10 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
                 rankSite = a + 1;
                 break
             }
+		if ( temp !== -1 ){
+			Cookies.set(isSaveData,temp,{ expires: 36500 });
+			isSaveData = 'none' ;
+		}
     },
     toWin = function() {
         !1 === winSound && document.getElementById("win").play();
