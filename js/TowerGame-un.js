@@ -1,3 +1,8 @@
+// ==ClosureCompiler==
+// @output_file_name default.js
+// @compilation_level SIMPLE_OPTIMIZATIONS
+// ==/ClosureCompiler==
+
 var c;
 window.requestAnimFrame = function() {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(a) {
@@ -113,7 +118,7 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
         if ("stage4" === nowPage) return "stage5"
     },
 	showCloud = function() {
-		var initCloud1X = 50 , initCloud2X = 170 , initCloud3X = 600 ; 
+		var initCloud1X = 50 , initCloud2X = 170 , initCloud3X = 550 ; 
 		cloud1X += speed1 , cloud2X += speed2 , cloud3X += speed3 ;
 		if ( Math.abs(cloud1X - initCloud1X ) >= 100 )
 			speed1 *= -1 ;
@@ -141,7 +146,7 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
 			cloud2Ctx.drawImage(getImage('cloud2'),0,0,138,89) ;
 			cloud2Ctx.cache = true ;
 		} 
-		ctx.drawImage(cloud2Canvas,cloud2X,100) ;
+		ctx.drawImage(cloud2Canvas,cloud2X,130) ;
 	} ,
     showStage = function() {
         "stage1" === nowPage ? (void 0 === stage1Ctx.cache && (stage1Canvas.width = 140, stage1Canvas.height = 70, stage1Ctx.drawImage(getImage("stage1"), 0, 0, 140, 70), stage1Ctx.cache = !0), ctx.drawImage(stage1Ctx.canvas, 800, 50)) : "stage2" ===
@@ -475,8 +480,8 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
         !1 === isTeach && !1 === isTeaching && !1 === beginCount && (countTimer = setInterval(countTime, 1E3), beginCount = !0)
     },
     resetAll = function() {
-		speed1 = 0.01 , speed2 = 0.05 , speed3 = 0.02 ;
-		cloud1X = 50 , cloud2X = 170 , cloud3X = 600 ; 
+		speed1 = 0.1 , speed2 = 0.5 , speed3 = -0.2 ;
+		cloud1X = 50 , cloud2X = 170 , cloud3X = 550 ; 
         pigIndex = 0;
         ctx.font = "30px Arial";
         failSound = winSound = boxSound = isBoxTouch = isPush = beginCount = !1;
