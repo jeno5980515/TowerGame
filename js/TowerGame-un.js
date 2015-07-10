@@ -57,6 +57,8 @@ var backGroundLeftOneCanvas = document.createElement("canvas"),
     goIndex2Ctx = goIndex2Canvas.getContext("2d"),
 	cloud1X , cloud2X , cloud3X ,
     beginCount, cacheMap = {},
+	heightNumberCache = {},
+	timeNumberCache = {},
     hookCache = {},
     pigIndex = 0,
     nextCache = {};
@@ -253,58 +255,137 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
             744, 712 - 516 * nowRightHeight / goalHeight + 43, 35, 516 * nowRightHeight / goalHeight), void 0 === tagDownRightCanvas.cache && (tagDownRightCanvas.width = 37, tagDownRightCanvas.height = 19, tagDownRightCtx.drawImage(getImage("tag3"), 0, 0, 37, 19), tagDownRightCanvas.cache = !0), ctx.drawImage(tagDownRightCanvas, 744, 755), void 0 === tagTopLeftCanvas.cache && (tagTopLeftCanvas.width = 35, tagTopLeftCanvas.height = 18, tagTopLeftCtx.drawImage(getImage("tag_2"), 0, 0, 35, 18), tagTopLeftCanvas.cache = !0), ctx.drawImage(tagTopLeftCanvas, 22, 738 - 516 *
             nowLeftHeight / goalHeight), ctx.drawImage(getImage("tag2"), 22, 712 - 516 * nowLeftHeight / goalHeight + 43, 35, 516 * nowLeftHeight / goalHeight), void 0 === tagDownLeftCanvas.cache && (tagDownLeftCanvas.width = 35, tagDownLeftCanvas.height = 19, tagDownLeftCtx.drawImage(getImage("tag3_2"), 0, 0, 35, 19), tagDownLeftCanvas.cache = !0), ctx.drawImage(tagDownLeftCanvas, 22, 755))
     },
-    showNowTag = function() {
-        if (1 === amount) {
-            void 0 === nowTagRightCanvas.cache && (nowTagRightCanvas.width = 95, nowTagRightCanvas.height = 32, nowTagRightCtx.drawImage(getImage("nowtag"),
-                0, 0, 95, 32), nowTagRightCanvas.cache = !0);
-            ctx.drawImage(nowTagRightCanvas, 635, 739 - 511 * nowHeight / goalHeight);
-            var a = 675 + 8 * (nowHeight.toString().length - 1),
-                b = nowHeight;
-            ctx.drawImage(getImage("M"), a, 745 - 511 * nowHeight / goalHeight, 15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 745 - 511 * nowHeight / goalHeight, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-        } else if (2 === amount) {
-            void 0 === nowTagRightCanvas.cache && (nowTagRightCanvas.width = 95, nowTagRightCanvas.height = 32, nowTagRightCtx.drawImage(getImage("nowtag"),
-                0, 0, 95, 32), nowTagRightCanvas.cache = !0);
-            ctx.drawImage(nowTagRightCanvas, 645, 738 - 516 * nowRightHeight / goalHeight);
-            a = 685 + 8 * (nowRightHeight.toString().length - 1);
-            b = nowRightHeight;
-            ctx.drawImage(getImage("M"), a, 744 - 516 * nowRightHeight / goalHeight, 15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 744 - 516 * nowRightHeight / goalHeight, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-            void 0 === nowTagLeftCanvas.cache && (nowTagLeftCanvas.width = 95, nowTagLeftCanvas.height = 32, nowTagLeftCtx.drawImage(getImage("nowtag2"),
-                0, 0, 95, 32), nowTagLeftCanvas.cache = !0);
-            ctx.drawImage(nowTagLeftCanvas, 62, 738 - 516 * nowLeftHeight / goalHeight);
-            a = 115 + 8 * (nowLeftHeight.toString().length - 1);
-            b = nowLeftHeight;
-            ctx.drawImage(getImage("M"), a, 744 - 516 * nowLeftHeight / goalHeight, 15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 744 - 516 * nowLeftHeight / goalHeight, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-        }
-    },
-    showGoalTag = function() {
-        if (1 === amount) {
-            void 0 === goalTagRightCanvas.cache && (goalTagRightCanvas.width = 95, goalTagRightCanvas.height = 32, goalTagRightCtx.drawImage(getImage("goaltag"),
-                0, 0, 95, 32), goalTagRightCanvas.cache = !0);
-            ctx.drawImage(goalTagRightCanvas, 635, 236);
-            var a = 675 + 8 * (goalHeight.toString().length - 1),
-                b = goalHeight;
-            ctx.drawImage(getImage("M"), a, 242, 15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 242, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-        } else if (2 === amount) {
-            void 0 === goalTagRightCanvas.cache && (goalTagRightCanvas.width = 95, goalTagRightCanvas.height = 32, goalTagRightCtx.drawImage(getImage("goaltag"), 0, 0, 95, 32), goalTagRightCanvas.cache = !0);
-            ctx.drawImage(goalTagRightCanvas,
-                645, 230);
-            a = 685 + 8 * (goalHeight.toString().length - 1);
-            b = goalHeight;
-            ctx.drawImage(getImage("M"), a, 236, 15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 236, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-            void 0 === goalTagLeftCanvas.cache && (goalTagLeftCanvas.width = 95, goalTagLeftCanvas.height = 32, goalTagLeftCtx.drawImage(getImage("goaltag2"), 0, 0, 95, 32), goalTagLeftCanvas.cache = !0);
-            ctx.drawImage(goalTagLeftCanvas, 62, 230);
-            a = 115 + 8 * (goalHeight.toString().length - 1);
-            b = goalHeight;
-            ctx.drawImage(getImage("M"), a, 236,
-                15, 20);
-            for (a -= 16; 0 <= b && (ctx.drawImage(getImage(b % 10 + "2"), a, 236, 15, 20), b = Math.floor(b / 10), a -= 16, 0 !== b););
-        }
-    },
+	getTagNumber = function(src){
+		if ( heightNumberCache[src] === undefined ){
+			var cacheCanvas = document.createElement("canvas") ;
+			cacheCanvas.width = 15;
+			cacheCanvas.height = 20 ;
+			var cacheCtx = cacheCanvas.getContext("2d"); 
+			cacheCtx.drawImage(getImage(src), 0,  0, cacheCanvas.width, cacheCanvas.height);
+			heightNumberCache[src] = cacheCanvas ;
+		}
+		return heightNumberCache[src] ;
+	},
+	showNowTag = function(){
+		if ( amount === 1 ){
+			if ( nowTagRightCanvas.cache === undefined ){
+				nowTagRightCanvas.width = 95 ;
+				nowTagRightCanvas.height = 32 ;
+				nowTagRightCtx.drawImage(getImage('nowtag'),0,0,95,32) ;
+				nowTagRightCanvas.cache = true ;
+			} 
+			ctx.drawImage(nowTagRightCanvas,635,739-(739-228)*nowHeight/goalHeight) ;
+			var base = 675 + (nowHeight.toString().length - 1 ) * 8 ;
+			var temp = nowHeight ;
+			ctx.drawImage(getTagNumber('M'),base,745-(745-234)*nowHeight/goalHeight) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getTagNumber(temp%10+'2'),base,745-(745-234)*nowHeight/goalHeight) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+		} else if ( amount === 2 ){
+			if ( nowTagRightCanvas.cache === undefined ){
+				nowTagRightCanvas.width = 95 ;
+				nowTagRightCanvas.height = 32 ;
+				nowTagRightCtx.drawImage(getImage('nowtag'),0,0,95,32) ;
+				nowTagRightCanvas.cache = true ;
+			} 
+			ctx.drawImage(nowTagRightCanvas,645,738-(738-222)*nowRightHeight/goalHeight) ;
+			var base = 685 + (nowRightHeight.toString().length - 1 ) * 8 ;
+			var temp = nowRightHeight ;
+			ctx.drawImage(getTagNumber('M'),base,744-(744-228)*nowRightHeight/goalHeight) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getTagNumber(temp%10+'2'),base,744-(744-228)*nowRightHeight/goalHeight) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+			if ( nowTagLeftCanvas.cache === undefined ){
+				nowTagLeftCanvas.width = 95 ;
+				nowTagLeftCanvas.height = 32 ;
+				nowTagLeftCtx.drawImage(getImage('nowtag2'),0,0,95,32) ;
+				nowTagLeftCanvas.cache = true ;
+			} 
+			ctx.drawImage(nowTagLeftCanvas,62,738-(738-222)*nowLeftHeight/goalHeight) ;
+			var base = 115 + (nowLeftHeight.toString().length - 1 ) * 8 ;
+			var temp = nowLeftHeight ;
+			ctx.drawImage(getTagNumber('M'),base,744-(744-228)*nowLeftHeight/goalHeight) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getTagNumber(temp%10+'2'),base,744-(744-228)*nowLeftHeight/goalHeight) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+		}
+	} ,
+ 
+	showGoalTag = function(){
+		if ( amount === 1 ){
+			if ( goalTagRightCanvas.cache === undefined ){
+				goalTagRightCanvas.width = 95 ;
+				goalTagRightCanvas.height = 32 ;
+				goalTagRightCtx.drawImage(getImage('goaltag'),0,0,95,32) ;
+				goalTagRightCanvas.cache = true ;
+			} 
+			ctx.drawImage(goalTagRightCanvas,635,236) ;
+			 
+			var base = 675 + (goalHeight.toString().length - 1 ) * 8 ;
+			var temp = goalHeight ;
+			ctx.drawImage(getImage('M'),base,242,15,20) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getImage(temp%10+'2'),base,242,15,20) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+		} else if ( amount === 2 ){
+			if ( goalTagRightCanvas.cache === undefined ){
+				goalTagRightCanvas.width = 95 ;
+				goalTagRightCanvas.height = 32 ;
+				goalTagRightCtx.drawImage(getImage('goaltag'),0,0,95,32) ;
+				goalTagRightCanvas.cache = true ;
+			} 
+			ctx.drawImage(goalTagRightCanvas,645,230) ;
+			var base = 685 + (goalHeight.toString().length - 1 ) * 8 ;
+			var temp = goalHeight ;
+			ctx.drawImage(getImage('M'),base,236,15,20) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getImage(temp%10+'2'),base,236,15,20) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+			if ( goalTagLeftCanvas.cache === undefined ){
+				goalTagLeftCanvas.width = 95 ;
+				goalTagLeftCanvas.height = 32 ;
+				goalTagLeftCtx.drawImage(getImage('goaltag2'),0,0,95,32) ;
+				goalTagLeftCanvas.cache = true ;
+			} 
+			ctx.drawImage(goalTagLeftCanvas,62,230) ;
+			base = 115 + (goalHeight.toString().length - 1 ) * 8 ;
+			var temp = goalHeight ;
+			ctx.drawImage(getImage('M'),base,236,15,20) ;
+			base -= 16 ;
+			while( temp >= 0 ){
+				ctx.drawImage(getImage(temp%10+'2'),base,236,15,20) ;
+				temp = Math.floor(temp/10) ;
+				base -= 16 ;
+				if ( temp === 0 )
+					break ;
+			}
+		}
+	},
     showGoalHeight = function() {
         1 === amount ? (ctx.font = "30px Arial", ctx.fillStyle = "#C5453E", ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 220, 300, 50)) : 2 === amount && (ctx.font = "30px Arial", ctx.fillStyle = "#C5453E", ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 187, 300, 50), ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 365, 300, 50))
     },
@@ -315,13 +396,40 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
     countTime = function() {
         0 >= remainTime ? toGameOver() : --remainTime
     },
-    showTime = function() {
-        if (1 === amount)
-            for (var a = 825 + 25 * remainTime.toString().length,
-                    b = remainTime; 0 <= b && (ctx.drawImage(getImage(b % 10), a, 420, 50, 50), b = Math.floor(b / 10), a -= 50, 0 !== b););
-        else if (2 === amount)
-            for (a = 820 + 25 * remainTime.toString().length, b = remainTime; 0 <= b && (ctx.drawImage(getImage(b % 10), a, 525, 50, 50), b = Math.floor(b / 10), a -= 50, 0 !== b););
-    },
+	getTimeNumber = function(src){
+		if ( timeNumberCache[src] === undefined ){
+			var cacheCanvas = document.createElement("canvas") ;
+			cacheCanvas.width = 50;
+			cacheCanvas.height = 50 ;
+			var cacheCtx = cacheCanvas.getContext("2d"); 
+			cacheCtx.drawImage(getImage(src), 0,  0, cacheCanvas.width, cacheCanvas.height);
+			timeNumberCache[src] = cacheCanvas ;
+		}
+		return timeNumberCache[src] ;
+	},
+	showTime = function(){
+		if ( amount === 1 ){
+			var timebase = 825 + (remainTime.toString().length ) * 25 ;
+			var temp = remainTime ;
+			while( temp >= 0 ){
+				ctx.drawImage(getTimeNumber(temp%10),timebase,420) ;
+				temp = Math.floor(temp/10) ;
+				timebase -= 50 ;
+				if ( temp === 0 )
+					break ;
+			}
+		}else if ( amount === 2 ){
+			var timebase = 820 + (remainTime.toString().length ) * 25 ;
+			var temp = remainTime ;
+			while( temp >= 0 ){
+				ctx.drawImage(getTimeNumber(temp%10),timebase,525) ;
+				temp = Math.floor(temp/10) ;
+				timebase -= 50 ;
+				if ( temp === 0 )
+					break ;
+			}
+		}
+	} ,
     randomBox = function() {
         0 === randomType ? nextBox = simpleBoxList[Math.floor(Math.random() * simpleBoxList.length)] : 1 === randomType ? nextBox = allBoxList[Math.floor(Math.random() * allBoxList.length)] : 2 === randomType && (nextBox = normalBoxList[Math.floor(Math.random() *
             normalBoxList.length)])
