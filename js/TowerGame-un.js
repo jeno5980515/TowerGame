@@ -1009,17 +1009,36 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
             d = d.h;
         Math.abs(a - 395 * e / 978 - (f - e) / 2) <= 128 * e / 978 && Math.abs(b - 447 * d / 780 - (g - d) / 2) <= 40 * d / 780 ? (document.body.style.cursor = "pointer", mouseOver = "next", !1 === buttonSound && (document.getElementById("button").play(), buttonSound = !0)) : (buttonSound = !1, document.body.style.cursor = "default", mouseOver = "none")
     },
-    gameWinMouseClick = function(a) {
-        var b = getMouseSite(a);
-        a = b.x;
-        var b = b.y,
-            f = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth,
-            g = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight,
-            d = getRatio(f, g),
-            e = d.w,
-            d = d.h;
-        Math.abs(a - 395 * e / 978 - (f - e) / 2) <= 128 * e / 978 && Math.abs(b - 447 * d / 780 - (g - d) / 2) <= 40 * d / 780 ? "stage5" === nowPage ? (toRank(), nowPage = "rank") : (toNext(), mouseOver = "none", resetAll()) : mouseOver = "none"
-    },
+	gameWinMouseClick = function(e){
+		var temp = getMouseSite(e);
+		var tempX = temp.x , tempY = temp.y ;
+		var offsetX = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientWidth ;
+		var offsetY = SlEEPBAG.canvasAutoResizer.getGameArea().parentNode.clientHeight ;
+		var ratio = getRatio(offsetX,offsetY);
+		var w = ratio.w , h = ratio.h ;
+		if ( Math.abs( (tempX - 395 * w / 978 ) - ((offsetX - w) / 2)  )  <=  128 * w / 978 &&
+			 Math.abs( (tempY - 447 * h / 780 ) - ((offsetY - h) / 2)  )  <=  40 * h / 780 ) {
+			if ( nowPage === 'stage5' ){
+				toRank();
+				nowPage = 'rank' ;
+			} else if ( Cookies.get('stage5') !== null && Cookies.get('stage5') !== "" && Cookies.get('stage5') !== undefined ){
+				toRank();
+				if ( isShowConfirm === true )
+					nowPage = 'rank' ;
+				else {
+					toNext();
+					mouseOver = 'none' ;
+					resetAll();
+				}	
+			} else {
+				toNext();
+				mouseOver = 'none' ;
+				resetAll();
+			}
+		} else {
+			mouseOver = 'none' ;
+		}
+	},
 	gameOverMouseOver = function(e){
 		var temp = getMouseSite(e);
 		var tempX = temp.x , tempY = temp.y ;
