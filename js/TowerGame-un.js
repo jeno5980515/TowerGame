@@ -60,6 +60,8 @@ var backGroundLeftOneCanvas = document.createElement("canvas"),
 	heightNumberCache = {},
 	timeNumberCache = {},
     hookCache = {},
+	goalHeightCache = {},
+	nowHeightCache = {},
     pigIndex = 0,
     nextCache = {};
 document.getElementById("bg").src = "sound/background.mp3";
@@ -386,13 +388,76 @@ var imageList = "hook hook2 box1 box2 game_bg_1 game_bg_2 game_bg2_1 game_bg2_2 
 			}
 		}
 	},
-    showGoalHeight = function() {
-        1 === amount ? (ctx.font = "30px Arial", ctx.fillStyle = "#C5453E", ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 220, 300, 50)) : 2 === amount && (ctx.font = "30px Arial", ctx.fillStyle = "#C5453E", ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 187, 300, 50), ctx.fillText(goalHeight + " m", 855 - 10 * goalHeight.toString().length, 365, 300, 50))
-    },
-    showNowHeight = function() {
-        1 ===
-            amount ? (ctx.font = "30px Arial", ctx.fillStyle = "#28231E", ctx.fillText(nowHeight + " m", 855 - 10 * nowHeight.toString().length, 320, 300, 50)) : 2 === amount && (ctx.font = "30px Arial", ctx.fillStyle = "#28231E", ctx.fillText(nowLeftHeight + " m", 855 - 10 * nowLeftHeight.toString().length, 260, 300, 50), ctx.fillText(nowRightHeight + " m", 855 - 10 * nowRightHeight.toString().length, 438, 300, 50))
-    },
+	showGoalHeight = function(){
+		if ( amount === 1 ){
+			var base = 855 ; 
+			if ( goalHeightCache[goalHeight] === undefined ){
+				var cacheCanvas = document.createElement("canvas") ;
+				cacheCanvas.width = 90 ;
+				cacheCanvas.height = 30 ;
+				var cacheCtx = cacheCanvas.getContext("2d"); 
+				cacheCtx.font = "30px Arial" ;
+				cacheCtx.fillStyle = "#C5453E" ;
+				cacheCtx.fillText(goalHeight+' m',0,30) ;
+				goalHeightCache[goalHeight] = cacheCanvas ;
+			}
+			ctx.drawImage(goalHeightCache[goalHeight],base-goalHeight.toString().length*10,190) ;
+		} else if ( amount === 2 ){
+			var base = 855 ; 
+			if ( goalHeightCache[goalHeight] === undefined ){
+				var cacheCanvas = document.createElement("canvas") ;
+				cacheCanvas.width = 90 ;
+				cacheCanvas.height = 30 ;
+				var cacheCtx = cacheCanvas.getContext("2d"); 
+				cacheCtx.font = "30px Arial" ;
+				cacheCtx.fillStyle = "#C5453E" ;
+				cacheCtx.fillText(goalHeight+' m',0,30) ;
+				goalHeightCache[goalHeight] = cacheCanvas ;
+			}
+			ctx.drawImage(goalHeightCache[goalHeight],base-goalHeight.toString().length*10,157) ;
+			ctx.drawImage(goalHeightCache[goalHeight],base-goalHeight.toString().length*10,335) ;
+		}
+	} ,
+	showNowHeight = function(){
+		if ( amount === 1 ){
+			var base = 855 ; 
+			if ( nowHeightCache[nowHeight] === undefined ){
+				var cacheCanvas = document.createElement("canvas") ;
+				cacheCanvas.width = 90 ;
+				cacheCanvas.height = 30 ;
+				var cacheCtx = cacheCanvas.getContext("2d"); 
+				cacheCtx.font = "30px Arial" ;
+				cacheCtx.fillStyle = "#28231E" ;
+				cacheCtx.fillText(nowHeight+' m',0,30) ;
+				nowHeightCache[nowHeight] = cacheCanvas ;
+			}
+			ctx.drawImage(nowHeightCache[nowHeight],base-nowHeight.toString().length*10,290) ;
+		} else if ( amount === 2 ){
+			var base = 855 ; 
+			if ( nowHeightCache[nowLeftHeight] === undefined ){
+				var cacheCanvas = document.createElement("canvas") ;
+				cacheCanvas.width = 90 ;
+				cacheCanvas.height = 30 ;
+				var cacheCtx = cacheCanvas.getContext("2d"); 
+				cacheCtx.font = "30px Arial" ;
+				cacheCtx.fillStyle = "#28231E" ;
+				cacheCtx.fillText(nowLeftHeight+' m',0,30) ;
+				nowHeightCache[nowLeftHeight] = cacheCanvas ;
+			}
+			ctx.drawImage(nowHeightCache[nowLeftHeight],base-nowLeftHeight.toString().length*10,230) ;
+			if ( nowHeightCache[nowRightHeight] === undefined ){
+				var cacheCanvas = document.createElement("canvas") ;
+				cacheCanvas.width = 90 ;
+				cacheCanvas.height = 30 ;
+				var cacheCtx = cacheCanvas.getContext("2d"); 
+				cacheCtx.font = "30px Arial" ;
+				cacheCtx.fillStyle = "#28231E" ;
+				cacheCtx.fillText(nowRightHeight+' m',0,30) ;
+				nowHeightCache[nowRightHeight] = cacheCanvas ;
+			}
+			ctx.drawImage(nowHeightCache[nowRightHeight],base-nowRightHeight.toString().length*10,408) ;
+		}
+	},
     countTime = function() {
         0 >= remainTime ? toGameOver() : --remainTime
     },
